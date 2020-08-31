@@ -1,3 +1,31 @@
+# Custom
+*.bin
+*.pth
+*.pt
+*.ckpt
+*.csv
+*.log
+*.pickle
+data/*
+random/*
+notebooks/*
+experiments/*
+runs/*
+tb_logs/*
+lightning_logs/*
+wandb/*
+default/*
+.early_stopping/*
+.model_checkpoint/*
+.vector_cache
+.run_cache/*
+.hf_cache
+
+# IDEs
+.DS_Store
+.idea/
+.vscode
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
