@@ -1,0 +1,18 @@
+{
+  "model_name": "efficientnet-b0",
+  "freeze_backbone": true,
+  "log_dir": "logs/",
+  "load_checkpoint": false,
+  "data_path": "data/orig",
+  "data_train": "train.csv",
+  "resample": true,
+  "shuffle": false,
+  "num_workers": 12,
+  "gpus": "cuda:0",
+  "n_epochs": 4,
+  "batch_size": 64,
+  "learning_rate": 0.003,
+  "tensorboard_enable": false,
+  "early_stop_callback": true,
+  "val_check_interval": 50
+}
