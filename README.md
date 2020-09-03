@@ -5,3 +5,4 @@ Install required packages:
   
     conda create --name landmarks --file requirements.txt python=3.8 --channel conda-forge
     conda activate landmarks
+    python -m pip install catalyst==20.8.2

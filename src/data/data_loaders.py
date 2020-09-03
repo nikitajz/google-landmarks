@@ -1,12 +1,13 @@
 import logging
+from pathlib import Path
 from typing import Union, Callable, Tuple, Optional
 
 import pandas as pd
 from pandas import DataFrame
-from pathlib import Path
 from PIL import Image
-import torch
 from sklearn.preprocessing import LabelEncoder
+
+import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
@@ -170,6 +171,7 @@ def get_data_loaders(train_df: DataFrame, valid_df: DataFrame,
                               num_workers=num_workers,
                               collate_fn=collate_fn
                               )
+
     valid_loader = DataLoader(valid_dataset,
                               batch_size=batch_size,
                               shuffle=shuffle,

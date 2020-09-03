@@ -1,18 +1,17 @@
 import datetime
 import logging
 
-from catalyst.contrib.utils import split_dataframe_train_test
+import torch
+import torch.nn as nn
 from catalyst.contrib.dl.callbacks import WandbLogger
-from catalyst.dl.callbacks import AccuracyCallback, AUCCallback
+from catalyst.contrib.utils import split_dataframe_train_test
 from catalyst.dl import SupervisedRunner
 from efficientnet_pytorch import EfficientNet
 
-import torch
-import torch.nn as nn
-
-from src.config.hf_argparser import load_or_parse_args
 from src.config.config_base import ModelArgs, TrainingArgs
+from src.config.hf_argparser import load_or_parse_args
 from src.data.data_loaders import load_train_dataframe, get_data_loaders
+from src.utils.metrics import GAPMetricCallback
 from src.utils.utils import fix_seed
 
 
@@ -59,8 +58,9 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [3, 6])
 
     callbacks = [
-        AccuracyCallback(num_classes=num_classes),
-        AUCCallback(num_classes=num_classes, input_key="targets"),
+        # AccuracyCallback(num_classes=num_classes),
+        # AUCCallback(num_classes=num_classes, input_key="targets"),
+        GAPMetricCallback(),
         WandbLogger(project="Landmarks", name=f'tryout_{dt_str}', log_on_batch_end=True)
     ]
 
