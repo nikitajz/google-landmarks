@@ -1,6 +1,5 @@
 import datetime
 import logging
-import time
 
 import joblib
 import torch
@@ -12,7 +11,6 @@ from catalyst.dl import SupervisedRunner
 from src.config.config_base import ModelArgs, TrainingArgs
 from src.config.hf_argparser import load_or_parse_args
 from src.data.data_loaders import load_train_dataframe, get_data_loaders
-from src.predict import run_prediction
 from src.model import get_model
 from src.utils.metrics import GAPMetricCallback
 from src.utils.utils import fix_seed
@@ -22,7 +20,7 @@ if __name__ == '__main__':
     SEED = 17
     fix_seed(SEED)
     logger = logging.getLogger(__name__)
-    start_time = time.time()
+    start_time = datetime.datetime.now()
 
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -78,8 +76,5 @@ if __name__ == '__main__':
         verbose=True
     )
 
-    if training_args.predict:
-        run_prediction()
-
-    end_time = datetime.now()
+    end_time = datetime.datetime.now()
     logger.info('Duration: {}'.format(end_time - start_time))
