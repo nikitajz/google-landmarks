@@ -58,10 +58,9 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [3, 6])
 
     callbacks = [
-        # AccuracyCallback(num_classes=num_classes),
-        # AUCCallback(num_classes=num_classes, input_key="targets"),
-        GAPMetricCallback(),
-        WandbLogger(project="Landmarks", name=f'tryout_{dt_str}', log_on_batch_end=True)
+        GAPMetricCallback(prefix="gap"),
+        WandbLogger(project="Landmarks", name=f'tryout_{dt_str}', log_on_batch_end=True,
+                    config={**model_args, **training_args})
     ]
 
     runner = SupervisedRunner(device=training_args.gpus)
@@ -75,7 +74,7 @@ if __name__ == '__main__':
         callbacks=callbacks,
         logdir=training_args.log_dir,
         num_epochs=training_args.n_epochs,
-        main_metric="loss",
+        main_metric="gap",
         minimize_metric=True,
         fp16=False,
         verbose=True

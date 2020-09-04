@@ -53,7 +53,7 @@ class LandmarksImageDataset(Dataset):
         augmentations = [
             transforms.RandomChoice([
                 transforms.RandomHorizontalFlip(),
-                # transforms.RandomCrop(224),
+                transforms.RandomCrop(224),
                 transforms.ColorJitter(0.2, 0.2, 0.2, 0.2),
                 transforms.RandomAffine(degrees=15, translate=(0.2, 0.2),
                                         scale=(0.8, 1.2), shear=15,
@@ -62,7 +62,7 @@ class LandmarksImageDataset(Dataset):
         ]
 
         if mode == 'train':
-            all_transforms = [base_transforms, augmentations, convert_n_normalize]
+            all_transforms = [base_transforms[:1], augmentations, convert_n_normalize]
         else:
             all_transforms = [base_transforms, convert_n_normalize]
 

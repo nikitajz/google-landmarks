@@ -21,6 +21,7 @@ default/*
 .vector_cache
 .run_cache/*
 .hf_cache
+misc/*
 
 # IDEs
 .DS_Store
