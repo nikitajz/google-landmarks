@@ -53,7 +53,7 @@ class LandmarksImageDataset(Dataset):
         augmentations = [
             transforms.RandomChoice([
                 transforms.RandomHorizontalFlip(),
-                transforms.RandomCrop(224),
+                # transforms.RandomCrop(224),
                 transforms.ColorJitter(0.2, 0.2, 0.2, 0.2),
                 transforms.RandomAffine(degrees=15, translate=(0.2, 0.2),
                                         scale=(0.8, 1.2), shear=15,
@@ -62,7 +62,7 @@ class LandmarksImageDataset(Dataset):
         ]
 
         if mode == 'train':
-            all_transforms = [base_transforms[:1], augmentations, convert_n_normalize]
+            all_transforms = [base_transforms, augmentations, convert_n_normalize]
         else:
             all_transforms = [base_transforms, convert_n_normalize]
 
@@ -83,7 +83,7 @@ class ImagePath:
 
 
 def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 10,
-                         validate_path: bool = False) -> Tuple[DataFrame, LabelEncoder]:
+                         validate_image_path: bool = False) -> Tuple[DataFrame, LabelEncoder]:
     """
     Load dataframe from the file `train.csv` containing `image_id` and `landmark_id` (class_id) mapping.
 
@@ -93,7 +93,7 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
         Path to the `train.csv` file.
     min_class_samples
         Minimum number of samples per class. Remove classes with number of samples below threshold.
-    validate_path
+    validate_image_path
         Whether to check if file corresponding to image_id actually exists (time-consuming).
 
     Returns
@@ -102,7 +102,7 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
     """
     df = pd.read_csv(csv_path)
     logger.debug(f'Initial number of samples: {df.shape[0]}')
-    if validate_path:
+    if validate_image_path:
         logger.debug('Validating images exist')
         image_dir = csv_path.parent/'train'
         image_path = ImagePath(image_dir)
@@ -145,6 +145,25 @@ class CollateBatch:
         return batch_dict
 
 
+def get_test_data_loader(sub_df: DataFrame,
+                         image_dir: PathType,
+                         batch_size: int,
+                         num_workers: int = 4
+                         ):
+
+    test_dataset = LandmarksImageDataset(sub_df,
+                                         image_dir=image_dir,
+                                         mode="test")
+
+    collate_fn = CollateBatch()
+    test_loader = DataLoader(test_dataset,
+                             batch_size=batch_size,
+                             shuffle=False,
+                             num_workers=num_workers,
+                             collate_fn=collate_fn)
+    return test_loader
+
+
 def get_data_loaders(train_df: DataFrame, valid_df: DataFrame,
                      image_dir: PathType,
                      batch_size: int,
@@ -152,15 +171,9 @@ def get_data_loaders(train_df: DataFrame, valid_df: DataFrame,
                      shuffle: bool = False,
                      sampler=None):
 
-    train_dataset = LandmarksImageDataset(train_df,
-                                          image_dir=image_dir,
-                                          mode="train"
-                                          )
+    train_dataset = LandmarksImageDataset(train_df, image_dir=image_dir, mode="train")
 
-    valid_dataset = LandmarksImageDataset(valid_df,
-                                          image_dir=image_dir,
-                                          mode="valid"
-                                          )
+    valid_dataset = LandmarksImageDataset(valid_df, image_dir=image_dir, mode="valid")
 
     collate_fn = CollateBatch()
 

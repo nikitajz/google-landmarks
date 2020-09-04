@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -41,7 +42,7 @@ class TrainingArgs:
         default=1, metadata={"help": "How many workers to use for dataloader"})
     seed: int = field(
         default=42, metadata={"help": "Random number"})
-    gpus: str = field(
+    device: str = field(
         default='cuda:0', metadata={"help": "Device to train model on. Int for number of gpus," +
                                     " str to select specific one or List[str] to select few specific gpus"})
     n_epochs: int = field(
@@ -73,7 +74,13 @@ class TrainingArgs:
         default=".early_stopping", metadata={"help": "Checkpoint path."})
     patience: int = field(
         default=2, metadata={"help": "Early stopping patience"})
+    predict: bool = field(
+        default=False, metadata={"help": "Whether to run prediction along with train phase"}
+    )
 
     def __post_init__(self):
-        self.data_path = Path(self.data_path)
+        not_kernel = os.environ.get("KAGGLE_KERNEL_RUN_TYPE") is None
+        self.data_path = Path(self.data_path) if not_kernel else Path("/kaggle/input/landmark-recognition-2020")
         self.data_train = self.data_path/self.data_train
+        self.label_encoder_filename = "label_encoder.jl"
+        self.num_classes_filename = "num_classes.jl"
