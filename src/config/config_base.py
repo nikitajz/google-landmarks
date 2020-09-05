@@ -32,6 +32,9 @@ class TrainingArgs:
     data_test: str = field(
         default="test.csv",
         metadata={"help": "Test filename to load csv file from into dataframe"})
+    min_class_samples: int = field(
+        default=10,
+        metadata={"help": "Filter out classes with fewer samples"})
     reload_dataloaders_every_epoch: bool = field(
         default=False, metadata={"help": "Reload datasets on each epoch or not"})
     resample: bool = field(
@@ -82,5 +85,6 @@ class TrainingArgs:
         not_kernel = os.environ.get("KAGGLE_KERNEL_RUN_TYPE") is None
         self.data_path = Path(self.data_path) if not_kernel else Path("/kaggle/input/landmark-recognition-2020")
         self.data_train = self.data_path/self.data_train
+        self.log_dir = Path(self.log_dir)
         self.label_encoder_filename = "label_encoder.jl"
         self.num_classes_filename = "num_classes.jl"

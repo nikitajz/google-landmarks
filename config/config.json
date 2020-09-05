@@ -1,10 +1,11 @@
 {
-  "model_name": "efficientnet-b4",
+  "model_name": "efficientnet-b0",
   "freeze_backbone": true,
   "log_dir": "logs/",
   "load_checkpoint": false,
   "data_path": "data/orig",
   "data_train": "train.csv",
+  "min_class_samples": 20,
   "resample": true,
   "shuffle": false,
   "num_workers": 6,

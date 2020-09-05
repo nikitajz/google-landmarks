@@ -30,7 +30,8 @@ if __name__ == '__main__':
 
     model_args, training_args = load_or_parse_args((ModelArgs, TrainingArgs), verbose=True)
 
-    train_orig_df, label_enc = load_train_dataframe(training_args.data_train)
+    train_orig_df, label_enc = load_train_dataframe(training_args.data_train,
+                                                    min_class_samples=training_args.min_class_samples)
     train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=0.2, random_state=SEED,
                                                     stratify=train_orig_df.landmark_id)
 
@@ -46,6 +47,7 @@ if __name__ == '__main__':
 
     num_classes = train_df.landmark_id.nunique()
     joblib.dump(num_classes, filename=training_args.log_dir / training_args.num_classes_filename)
+
     model = get_model(model_name=model_args.model_name, n_classes=num_classes)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=training_args.learning_rate)
