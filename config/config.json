@@ -1,5 +1,5 @@
 {
-  "model_name": "efficientnet-b0",
+  "model_name": "efficientnet-b4",
   "freeze_backbone": true,
   "log_dir": "logs/",
   "load_checkpoint": false,
