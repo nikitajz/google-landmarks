@@ -27,7 +27,7 @@ class LandmarksImageDataset(Dataset):
 
     def __getitem__(self, idx: int):
         image_id = self.df.iat[idx, self.df.columns.get_loc("id")]
-        img = Image.open(self.image_path.get_image_path(image_id))
+        img = Image.open(self.image_path.get_image_path(image_id)).convert('RGB')
         outputs = (self.transform(img),)
         if self.mode == "train" or self.mode == "valid":
             label = self.df.iat[idx, self.df.columns.get_loc("landmark_id")]
