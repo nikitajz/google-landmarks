@@ -19,7 +19,7 @@ class ModelArgs:
 @dataclass
 class TrainingArgs:
     log_dir: Optional[str] = field(
-        default='.log_dir',
+        default="logs",
         metadata={"help": "Path to save training artifacts (logs, checkpoints, etc)"})
     data_path: str = field(
         default="data/", metadata={"help": "Folder where data located"})
@@ -35,8 +35,6 @@ class TrainingArgs:
     min_class_samples: int = field(
         default=10,
         metadata={"help": "Filter out classes with fewer samples"})
-    reload_dataloaders_every_epoch: bool = field(
-        default=False, metadata={"help": "Reload datasets on each epoch or not"})
     resample: bool = field(
         default=False, metadata={"help": "Resample train data to have equal samples per class"})
     shuffle: bool = field(
@@ -46,7 +44,7 @@ class TrainingArgs:
     seed: int = field(
         default=42, metadata={"help": "Random number"})
     device: str = field(
-        default='cuda:0', metadata={"help": "Device to train model on. Int for number of gpus," +
+        default="cuda:0", metadata={"help": "Device to train model on. Int for number of gpus," +
                                     " str to select specific one or List[str] to select few specific gpus"})
     n_epochs: int = field(
         default=2, metadata={"help": "Number of epochs to train"})
@@ -77,14 +75,12 @@ class TrainingArgs:
         default=".early_stopping", metadata={"help": "Checkpoint path."})
     patience: int = field(
         default=2, metadata={"help": "Early stopping patience"})
-    predict: bool = field(
-        default=False, metadata={"help": "Whether to run prediction along with train phase"}
-    )
 
     def __post_init__(self):
         not_kernel = os.environ.get("KAGGLE_KERNEL_RUN_TYPE") is None
         self.data_path = Path(self.data_path) if not_kernel else Path("/kaggle/input/landmark-recognition-2020")
         self.data_train = self.data_path/self.data_train
         self.log_dir = Path(self.log_dir)
+        self.checkpoints_path = Path(self.log_dir) / "checkpoints"
         self.label_encoder_filename = "label_encoder.jl"
         self.num_classes_filename = "num_classes.jl"

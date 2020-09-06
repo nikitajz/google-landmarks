@@ -35,8 +35,8 @@ if __name__ == '__main__':
     train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=0.2, random_state=SEED,
                                                     stratify=train_orig_df.landmark_id)
 
-    training_args.log_dir.mkdir(exist_ok=True)
-    joblib.dump(label_enc, filename=training_args.log_dir / training_args.label_encoder_filename)
+    training_args.checkpoints_path.mkdir(exist_ok=True)
+    joblib.dump(label_enc, filename=training_args.checkpoints_path / training_args.label_encoder_filename)
     logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
 
     loaders = get_data_loaders(train_df, valid_df,
@@ -46,7 +46,7 @@ if __name__ == '__main__':
                                shuffle=training_args.shuffle)
 
     num_classes = train_df.landmark_id.nunique()
-    joblib.dump(num_classes, filename=training_args.log_dir / training_args.num_classes_filename)
+    joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
 
     model = get_model(model_name=model_args.model_name, n_classes=num_classes)
     criterion = nn.CrossEntropyLoss()
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         logdir=training_args.log_dir,
         num_epochs=training_args.n_epochs,
         main_metric="gap",
-        minimize_metric=True,
+        minimize_metric=False,
         fp16=False,
         verbose=True
     )

@@ -3,17 +3,14 @@
   "freeze_backbone": true,
   "log_dir": "logs/",
   "load_checkpoint": false,
-  "data_path": "data/orig",
+  "data_path": "data/x224",
   "data_train": "train.csv",
-  "min_class_samples": 20,
+  "min_class_samples": 5,
   "resample": true,
   "shuffle": false,
   "num_workers": 6,
   "device": "cuda:0",
   "n_epochs": 3,
   "batch_size": 32,
-  "learning_rate": 0.003,
-  "early_stop_callback": true,
-  "val_check_interval": 50,
-  "predict": true
+  "learning_rate": 0.003
 }
