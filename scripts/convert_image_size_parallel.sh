@@ -3,10 +3,16 @@
 # sudo apt-get remove moreutils && sudo apt-get install parallel
 
 # run inside the original directory
-res=x224  # resolution, square e.g. 256x256
+res=x128  # resolution, square e.g. 256x256
 output_dir=../$res  # alternatively ../x256 if it should be placed in the parent dir
+cores=-6 # see "-P" option for parallel
 
-echo "Converting image to resolution $res, output_dir is $output_dir"
+echo "Creating subfolders"
+find . -type d | parallel -P $cores --eta "mkdir -p $output_dir/{}"
 
-# TODO: mkdir should be done once per folder, not for each file
-find . -name '*.jpg' | parallel --bar "mkdir -p $output_dir/{//}; convert -quality 98 -resize \"224x224\" {} $output_dir/{}"
+echo "Converting images to resolution $res, output_dir is $output_dir"
+find . -name '*.jpg' | parallel -P $cores --eta "convert -colorspace RGB -geometry $res {} $output_dir/{}"
+
+echo "Copying the file 'train.csv'"
+cp train.csv $output_dir/train.csv
+echo "Done"
