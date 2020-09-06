@@ -35,8 +35,12 @@ class TrainingArgs:
     min_class_samples: int = field(
         default=10,
         metadata={"help": "Filter out classes with fewer samples"})
-    resample: bool = field(
-        default=False, metadata={"help": "Resample train data to have equal samples per class"})
+    use_weighted_sampler: bool = field(
+        default=False, metadata={"help": "Use weighted sampler"})
+    limit_samples_to_draw: bool = field(
+        default=False, metadata={"help": "Use weighted sampler"})
+    replacement: bool = field(
+        default=False, metadata={"help": "Whether to use replacement in weighted sampler for train data dataloader"})
     shuffle: bool = field(
         default=False, metadata={"help": "Shuffle train data"})
     num_workers: int = field(

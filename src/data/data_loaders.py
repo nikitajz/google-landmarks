@@ -9,6 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 
 import torch
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.data.sampler import WeightedRandomSampler
 from torchvision import transforms
 
 logger = logging.getLogger()
@@ -166,21 +167,43 @@ def get_test_data_loader(sub_df: DataFrame,
     return test_loader
 
 
+def class_imbalance_sampler(labels, num_samples=None, replacement=False):
+    labels = torch.LongTensor(labels.to_numpy())
+    class_count = torch.bincount(labels).to(dtype=torch.float)
+    class_weighting = 1. / class_count
+    sample_weights = class_weighting[labels]
+    sampler = WeightedRandomSampler(sample_weights, num_samples=num_samples, replacement=replacement)
+    return sampler
+
+
 def get_data_loaders(train_df: DataFrame, valid_df: DataFrame,
                      image_dir: PathType,
                      batch_size: int,
                      num_workers: int = 4,
-                     shuffle: bool = False,
-                     sampler=None):
+                     use_weighted_sampler: bool = True,
+                     limit_samples_to_draw: bool = True,
+                     replacement: bool = False):
+
     train_dataset = LandmarksImageDataset(train_df, image_dir=image_dir, mode="train")
 
     valid_dataset = LandmarksImageDataset(valid_df, image_dir=image_dir, mode="valid")
 
+    if limit_samples_to_draw:
+        n_uniq_classes = train_df.landmark_id.nunique()
+        n_samples = int(n_uniq_classes * train_df.landmark_id.value_counts().mean())
+    else:
+        n_samples = len(train_df)
+
+    if use_weighted_sampler:
+        logger.info(f'Using weighted sampler with total {n_samples} to draw. Replacement: {replacement}')
+        sampler = class_imbalance_sampler(train_df.landmark_id, num_samples=n_samples, replacement=replacement)
+    else:
+        sampler = None
     collate_fn = CollateBatch()
 
     train_loader = DataLoader(train_dataset,
                               batch_size=batch_size,
-                              shuffle=shuffle,
+                              shuffle=False,  # due to using sampler
                               sampler=sampler,
                               num_workers=num_workers,
                               collate_fn=collate_fn
@@ -188,8 +211,8 @@ def get_data_loaders(train_df: DataFrame, valid_df: DataFrame,
 
     valid_loader = DataLoader(valid_dataset,
                               batch_size=batch_size,
-                              shuffle=shuffle,
-                              sampler=sampler,
+                              shuffle=False,
+                              sampler=None,
                               num_workers=num_workers,
                               collate_fn=collate_fn
                               )

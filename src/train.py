@@ -43,7 +43,8 @@ if __name__ == '__main__':
                                image_dir=training_args.data_path,
                                batch_size=training_args.batch_size,
                                num_workers=training_args.num_workers,
-                               shuffle=training_args.shuffle)
+                               use_weighted_sampler=training_args.use_weighted_sampler,
+                               replacement=training_args.replacement)
 
     num_classes = train_df.landmark_id.nunique()
     joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
