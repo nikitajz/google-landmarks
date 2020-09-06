@@ -51,7 +51,7 @@ if __name__ == '__main__':
     model = get_model(model_name=model_args.model_name, n_classes=num_classes)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=training_args.learning_rate)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [3, 6])
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [3, 6], gamma=0.1)
 
     dt_str = datetime.datetime.now().strftime("%y%m%d_%H-%M")
 

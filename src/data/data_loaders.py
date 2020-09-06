@@ -40,7 +40,10 @@ class LandmarksImageDataset(Dataset):
     @staticmethod
     def _get_default_transform(mode: str):
         base_transforms = [
-            transforms.Resize(256),
+            transforms.Resize(256)
+        ]
+
+        center_crop = [
             transforms.CenterCrop(224)
         ]
 
@@ -53,18 +56,18 @@ class LandmarksImageDataset(Dataset):
         augmentations = [
             transforms.RandomChoice([
                 transforms.RandomHorizontalFlip(),
-                # transforms.RandomCrop(224),
                 transforms.ColorJitter(0.2, 0.2, 0.2, 0.2),
                 transforms.RandomAffine(degrees=15, translate=(0.2, 0.2),
                                         scale=(0.8, 1.2), shear=15,
                                         resample=Image.BILINEAR)
             ]),
+            transforms.RandomCrop(224)
         ]
 
         if mode == 'train':
             all_transforms = [base_transforms, augmentations, convert_n_normalize]
         else:
-            all_transforms = [base_transforms, convert_n_normalize]
+            all_transforms = [base_transforms, center_crop, convert_n_normalize]
 
         return transforms.Compose([item for sublist in all_transforms for item in sublist])
 
@@ -104,7 +107,7 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
     logger.debug(f'Initial number of samples: {df.shape[0]}')
     if validate_image_path:
         logger.debug('Validating images exist')
-        image_dir = csv_path.parent/'train'
+        image_dir = csv_path.parent / 'train'
         image_path = ImagePath(image_dir)
         df = df.loc[df.id.apply(image_path.exists)]
         logger.debug(f'Sample after filtering non-existing images: {df.shape[0]}')
@@ -150,7 +153,6 @@ def get_test_data_loader(sub_df: DataFrame,
                          batch_size: int,
                          num_workers: int = 4
                          ):
-
     test_dataset = LandmarksImageDataset(sub_df,
                                          image_dir=image_dir,
                                          mode="test")
@@ -170,7 +172,6 @@ def get_data_loaders(train_df: DataFrame, valid_df: DataFrame,
                      num_workers: int = 4,
                      shuffle: bool = False,
                      sampler=None):
-
     train_dataset = LandmarksImageDataset(train_df, image_dir=image_dir, mode="train")
 
     valid_dataset = LandmarksImageDataset(valid_df, image_dir=image_dir, mode="valid")
