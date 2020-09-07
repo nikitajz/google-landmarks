@@ -8,11 +8,11 @@ output_dir=../$res  # alternatively ../x256 if it should be placed in the parent
 cores=-6 # see "-P" option for parallel
 
 echo "Creating subfolders"
-find . -type d | parallel -P $cores --eta "mkdir -p $output_dir/{}"
+find . -type d | parallel -P $cores --bar "mkdir -p $output_dir/{}"
 
 echo "Converting images to resolution $res, output_dir is $output_dir"
-find . -name '*.jpg' | parallel -P $cores --eta "convert -colorspace RGB -geometry $res {} $output_dir/{}"
+find . -name '*.jpg' | parallel -P $cores --bar "convert -colorspace RGB -geometry $res {} $output_dir/{}"
 
-echo "Copying the file 'train.csv'"
+echo "Copying the file train.csv"
 cp train.csv $output_dir/train.csv
 echo "Done"
