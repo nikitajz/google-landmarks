@@ -10,6 +10,7 @@ data/*
 random/*
 notebooks/*
 experiments/*
+misc/*
 runs/*
 tb_logs/*
 lightning_logs/*
