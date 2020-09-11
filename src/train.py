@@ -9,7 +9,7 @@ from src.config.config_template import ModelArgs, TrainingArgs
 from src.config.hf_argparser import load_or_parse_args
 from src.datamodule import load_train_dataframe, LandmarksDataModule
 from src.lit_module import LandmarksBaseModule
-from src.model import get_model
+from src.modeling.model import LandmarkModel
 from src.utils import fix_seed
 
 
@@ -39,7 +39,8 @@ if __name__ == '__main__':
     num_classes = train_df.landmark_id.nunique()
     joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
 
-    model = get_model(model_name='efficientnet-b0', n_classes=num_classes)
+    model = LandmarkModel(model_name='resnet50',  # 'efficientnet-b0',
+                          n_classes=num_classes)
     lit_module = LandmarksBaseModule(hparams=training_args.__dict__, model=model)
 
     # init data
