@@ -6,6 +6,7 @@
   "load_checkpoint": false,
   "data_path": "data/x256",
   "data_train": "train.csv",
+  "test_size": 100000,
   "min_class_samples": 5,
   "use_weighted_sampler": false,
   "limit_samples_to_draw": false,
@@ -16,5 +17,5 @@
   "n_epochs": 3,
   "batch_size": 32,
   "lr": 0.003,
-  "val_check_interval": 5000
+  "val_check_interval": 0.1
 }

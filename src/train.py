@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     train_orig_df, label_enc = load_train_dataframe(training_args.data_train,
                                                     min_class_samples=training_args.min_class_samples)
-    train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=0.2, random_state=SEED,
+    train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=training_args.test_size, random_state=SEED,
                                                     stratify=train_orig_df.landmark_id)
 
     training_args.checkpoints_path.mkdir(exist_ok=True, parents=True)
@@ -70,7 +70,9 @@ if __name__ == '__main__':
 
     # train
     dt_str = datetime.datetime.now().strftime("%y%m%d_%H-%M")
-    wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}', project='landmarks')
+    wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}',
+                               save_dir='logs/wandb/',
+                               project='landmarks')
 
     trainer = pl.Trainer(gpus=training_args.gpus,
                          logger=wandb_logger,

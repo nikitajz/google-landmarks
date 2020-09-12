@@ -57,6 +57,9 @@ class TrainingArgs:
     data_test: str = field(
         default="test.csv",
         metadata={"help": "Test filename to load csv file from into dataframe"})
+    test_size: int = field(
+        default=0.1,
+        metadata={"help": "Filter out classes with fewer samples"})
     min_class_samples: int = field(
         default=10,
         metadata={"help": "Filter out classes with fewer samples"})
@@ -92,7 +95,7 @@ class TrainingArgs:
     gradient_clip_val: float = field(
         default=0, metadata={"help": "Clip gradient value. Set 0 to disable."})
     val_check_interval: Optional[int] = field(
-        default=1.0, metadata={"help": "How often within one training epoch to check validation set." +
+        default=0.5, metadata={"help": "How often within one training epoch to check validation set." +
                                        "Set float for fraction or int for steps."})
     early_stop_callback: bool = field(
         default=True, metadata={"help": "Whether to use early stopping"})
