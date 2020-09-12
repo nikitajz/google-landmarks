@@ -1,9 +1,10 @@
 {
-  "model_name": "efficientnet-b0",
+  "model_name": "resnet18",
+  "loss_module": "arcface",
   "freeze_backbone": true,
   "log_dir": "logs/",
   "load_checkpoint": false,
-  "data_path": "data/x224",
+  "data_path": "data/x256",
   "data_train": "train.csv",
   "min_class_samples": 5,
   "use_weighted_sampler": false,
@@ -11,8 +12,8 @@
   "replacement": false,
   "shuffle": false,
   "num_workers": 6,
-  "device": "cuda:0",
+  "gpus": "0",
   "n_epochs": 4,
-  "batch_size": 64,
+  "batch_size": 32,
   "lr": 0.003
 }

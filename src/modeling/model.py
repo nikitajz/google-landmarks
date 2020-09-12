@@ -13,7 +13,7 @@ class LandmarkModel(nn.Module):
                  n_classes: int,
                  model_name: str = 'resnet50',
                  pretrained: bool = True,
-                 pooling_name: str = 'GeM',
+                 pooling_name: str = 'adaptive',  # 'GeM',
                  args_pooling: dict = {},
                  use_fc: bool = False,
                  fc_dim: int = 512,
@@ -25,10 +25,9 @@ class LandmarkModel(nn.Module):
                  theta_zero=0.785):
         super().__init__()
         self.backbone, final_in_features = self.get_backbone(model_name, pretrained)
-        # if pooling_name in ('AdaptiveAvgPool2d', 'adaptive') and loss_module == 'softmax':
-        #     self.pooling = nn.AdaptiveAvgPool2d(1)
-        # el
-        if pooling_name in ('MAC', 'SPoC', 'GeM', 'GeMmp', 'RMAC', 'Rpool'):
+        if pooling_name in ('AdaptiveAvgPool2d', 'adaptive'):
+            self.pooling = nn.AdaptiveAvgPool2d(1)
+        elif pooling_name in ('MAC', 'SPoC', 'GeM', 'GeMmp', 'RMAC', 'Rpool'):
             self.pooling = getattr(cirtorch.pooling, pooling_name)(**args_pooling)
         else:
             raise ValueError("Incorrect pooling name")

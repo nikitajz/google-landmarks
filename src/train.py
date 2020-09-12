@@ -3,12 +3,14 @@ import logging
 
 import joblib
 import pytorch_lightning as pl
+from pytorch_lightning.loggers import WandbLogger, LightningLoggerBase
+from pprint import pformat
 from catalyst.contrib.utils import split_dataframe_train_test  # TODO: replace with non-catalyst method
 
 from src.config.config_template import ModelArgs, TrainingArgs
 from src.config.hf_argparser import load_or_parse_args
 from src.datamodule import load_train_dataframe, LandmarksDataModule
-from src.lit_module import LandmarksBaseModule
+from src.lit_module import LandmarksPLBaseModule
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed
 
@@ -40,8 +42,22 @@ if __name__ == '__main__':
     joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
 
     model = LandmarkModel(model_name='resnet50',  # 'efficientnet-b0',
-                          n_classes=num_classes)
-    lit_module = LandmarksBaseModule(hparams=training_args.__dict__, model=model)
+                          n_classes=num_classes,
+                          loss_module=model_args.loss_module,
+                          pooling_name=model_args.pooling_name,
+                          args_pooling=model_args.args_pooling,
+                          use_fc=model_args.use_fc,
+                          fc_dim=model_args.fc_dim,
+                          dropout=model_args.dropout,
+                          s=model_args.s,
+                          margin=model_args.margin,
+                          ls_eps=model_args.ls_eps,
+                          theta_zero=model_args.theta_zero
+                          )
+    logger.info("Model params:")
+    logger.info(pformat(model_args))
+
+    lit_module = LandmarksPLBaseModule(hparams=training_args.__dict__, model=model, loss=model_args.loss_module)
 
     # init data
     dm = LandmarksDataModule(train_df, valid_df,
@@ -53,7 +69,13 @@ if __name__ == '__main__':
                              )
 
     # train
-    trainer = pl.Trainer(fast_dev_run=True)
+    dt_str = datetime.datetime.now().strftime("%y%m%d_%H-%M")
+    wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}', project='landmarks')
+    base_logger = LightningLoggerBase()
+    trainer = pl.Trainer(gpus=training_args.gpus,
+                         logger=[wandb_logger, base_logger],
+                         progress_bar_refresh_rate=5,
+                         num_processes=4)
     trainer.fit(lit_module, datamodule=dm)
 
     print(trainer.ckpt_path)
