@@ -4,10 +4,10 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn.functional as F
-from pytorch_lightning.metrics.metric import TensorMetric
+from pytorch_lightning.metrics.metric import TensorMetric, NumpyMetric
 
 
-class GAPMetric(TensorMetric):
+class GAPMetric(NumpyMetric):
     """
         A callback metric to calculate GAP@1 (Global Average Precision at k=1), also known as micro Average Precision (μAP).
         The function takes the predictions, confidence scores and labels vectors as input and
@@ -33,7 +33,7 @@ class GAPMetric(TensorMetric):
         """
     def __init__(self,
                  reduce_group: Any = None,
-                 reduce_op: Any = None,
+                 reduce_op: Any = torch.cat,
                  device: bool = None,
                  **kwargs):
         super().__init__(name="GAP",
