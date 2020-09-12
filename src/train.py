@@ -79,7 +79,7 @@ if __name__ == '__main__':
                          max_epochs=training_args.n_epochs,
                          num_processes=training_args.num_processes,
                          val_check_interval=training_args.val_check_interval,
-                         progress_bar_refresh_rate=5,
+                         progress_bar_refresh_rate=100,
                          )
 
     trainer.fit(lit_module, datamodule=dm)

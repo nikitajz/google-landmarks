@@ -44,21 +44,22 @@ class LandmarksPLBaseModule(pl.LightningModule):
             loss_value = self.loss_fn(y_hat, labels)
         else:
             loss_value = y_hat
-        gap_value = self.gap[mode].forward(y_hat, labels)
+        gap_value = None
+        if mode == self.val_mode:
+            gap_value = self.gap[mode].forward(y_hat, labels)
         return loss_value, gap_value
 
     def training_step(self, batch, batch_idx):
         loss, gap_batch = self._compute_step(batch, batch_idx, mode=self.train_mode)
-        logs_train = {'train_loss': loss, 'gap': gap_batch}
-        return {'loss': loss, 'log': logs_train, 'progress_bar': {'gap': gap_batch}}
+        logs_train = {'train_loss': loss}
+        return {'loss': loss, 'log': logs_train}
 
     def on_train_epoch_end(self) -> None:
         self.gap[self.train_mode].reset_stats()
 
     def validation_step(self, batch, batch_idx, *args, **kwargs):
         loss, gap_batch = self._compute_step(batch, batch_idx, mode=self.val_mode)
-        logs_val = {'val_loss': loss, 'gap': gap_batch}
-        return {'val_loss': loss, 'log': logs_val}
+        return {'val_loss': loss}
 
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()

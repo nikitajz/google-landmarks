@@ -58,7 +58,7 @@ class GAPMetric(NumpyMetric):
         self.confs.append(confs_batch.cpu().numpy())
         self.labels.append(labels_batch.cpu().numpy())
 
-        return self._compute_metric()
+        return
 
     def compute_final(self):
         return self._compute_metric()
