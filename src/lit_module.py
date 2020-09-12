@@ -1,6 +1,8 @@
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+import torch.optim.lr_scheduler as lr_scheduler
+
 from src.metrics import GAPMetric
 from src.modeling.focal_loss import FocalLoss
 
@@ -28,7 +30,10 @@ class LandmarksPLBaseModule(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
-        return optimizer
+
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10,
+                                                   threshold=0.001, threshold_mode='rel', cooldown=0, min_lr=0)
+        return [optimizer], [scheduler]
 
     def _compute_step(self, batch, batch_idx, mode):
         assert mode in ('train', 'val')
@@ -45,12 +50,15 @@ class LandmarksPLBaseModule(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         loss, gap_batch = self._compute_step(batch, batch_idx, mode=self.train_mode)
         # (log keyword is optional)
-        return {'loss': loss, 'log': {'train_loss': loss, 'gap': gap_batch}}
+        logs_train = {'train_loss': loss, 'gap': gap_batch}
+        return {'loss': loss, 'log': logs_train, 'progress_bar': logs_train}
 
     def validation_step(self, batch, batch_idx, *args, **kwargs):
         loss, gap_batch = self._compute_step(batch, batch_idx, mode=self.val_mode)
+        logs_val = {'val_loss': loss, 'gap': gap_batch}
         return {'val_loss': loss,
-                'log': {'val_loss': loss, 'gap': gap_batch}}
+                'log': logs_val,
+                'progress_bar': logs_val}
 
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()

@@ -63,7 +63,7 @@ if __name__ == '__main__':
     dm = LandmarksDataModule(train_df, valid_df,
                              image_dir=training_args.data_path,
                              batch_size=training_args.batch_size,
-                             num_workers=training_args.num_workers,
+                             num_workers=training_args.num_processes,
                              use_weighted_sampler=training_args.use_weighted_sampler,
                              replacement=training_args.replacement
                              )
@@ -71,13 +71,16 @@ if __name__ == '__main__':
     # train
     dt_str = datetime.datetime.now().strftime("%y%m%d_%H-%M")
     wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}', project='landmarks')
-    base_logger = LightningLoggerBase()
-    trainer = pl.Trainer(gpus=training_args.gpus,
-                         logger=[wandb_logger, base_logger],
-                         progress_bar_refresh_rate=5,
-                         num_processes=4)
-    trainer.fit(lit_module, datamodule=dm)
 
+    trainer = pl.Trainer(gpus=training_args.gpus,
+                         logger=wandb_logger,
+                         max_epochs=training_args.n_epochs,
+                         num_processes=training_args.num_processes,
+                         val_check_interval=training_args.val_check_interval,
+                         progress_bar_refresh_rate=5,
+                         )
+
+    trainer.fit(lit_module, datamodule=dm)
     print(trainer.ckpt_path)
 
     # # test

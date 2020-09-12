@@ -68,13 +68,13 @@ class TrainingArgs:
         default=False, metadata={"help": "Whether to use replacement in weighted sampler for train data dataloader"})
     shuffle: bool = field(
         default=False, metadata={"help": "Shuffle train data"})
-    num_workers: int = field(
+    num_processes: int = field(
         default=1, metadata={"help": "How many workers to use for dataloader"})
     seed: int = field(
         default=42, metadata={"help": "Random number"})
     gpus: str = field(
-        default="0", metadata={"help": "Device to train model on. Int for number of gpus," +
-                                    " str to select specific one or List[str] to select few specific gpus"})
+        default="0", metadata={"help": "Device to train model on. Int for number of gpus, " +
+                                       "str to select specific one or List[str] to select few specific gpus"})
     n_epochs: int = field(
         default=2, metadata={"help": "Number of epochs to train"})
     accumulate_grad_batches: int = field(
@@ -108,7 +108,7 @@ class TrainingArgs:
     def __post_init__(self):
         not_kernel = os.environ.get("KAGGLE_KERNEL_RUN_TYPE") is None
         self.data_path = Path(self.data_path) if not_kernel else Path("/kaggle/input/landmark-recognition-2020")
-        self.data_train = self.data_path/self.data_train
+        self.data_train = self.data_path / self.data_train
         self.log_dir = Path(self.log_dir)
         self.checkpoints_path = Path(self.log_dir) / "checkpoints"
         self.label_encoder_filename = "label_encoder.jl"

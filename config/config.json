@@ -11,9 +11,10 @@
   "limit_samples_to_draw": false,
   "replacement": false,
   "shuffle": false,
-  "num_workers": 6,
+  "num_processes": 6,
   "gpus": "0",
-  "n_epochs": 4,
+  "n_epochs": 3,
   "batch_size": 32,
-  "lr": 0.003
+  "lr": 0.003,
+  "val_check_interval": 5000
 }
