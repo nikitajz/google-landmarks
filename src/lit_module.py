@@ -31,8 +31,7 @@ class LandmarksPLBaseModule(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
 
-        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10,
-                                                   threshold=0.001, threshold_mode='rel', cooldown=0, min_lr=0)
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=self.hparams.step_size, gamma=self.hparams.gamma)
         return [optimizer], [scheduler]
 
     def _compute_step(self, batch, batch_idx, mode):

@@ -46,6 +46,10 @@ class TrainingArgs:
     log_dir: Optional[str] = field(
         default="logs",
         metadata={"help": "Path to save training artifacts (logs, checkpoints, etc)"})
+    resume_checkpoint: Optional[str] = field(
+        default=None,
+        metadata={"help": "Path to model checkpoint to resume training from"}
+    )
     data_path: str = field(
         default="data/x256/", metadata={"help": "Folder where data located"})
     data_train: str = field(
@@ -92,6 +96,10 @@ class TrainingArgs:
         default=1e-8, metadata={"help": "Epsilon for Adam optimizer."})
     warmup_steps: int = field(
         default=7, metadata={"help": "Warm up steps for optimizer."})
+    step_size: int = field(
+        default=5, metadata={"help": "Scheduler StepLR size."})
+    gamma: float = field(
+        default=0.1, metadata={"help": "Scheduler gamma value."})
     gradient_clip_val: float = field(
         default=0, metadata={"help": "Clip gradient value. Set 0 to disable."})
     val_check_interval: Optional[int] = field(

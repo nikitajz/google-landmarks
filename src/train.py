@@ -3,7 +3,7 @@ import logging
 
 import joblib
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger, LightningLoggerBase
+from pytorch_lightning.loggers import WandbLogger
 from pprint import pformat
 from catalyst.contrib.utils import split_dataframe_train_test  # TODO: replace with non-catalyst method
 
@@ -57,6 +57,7 @@ if __name__ == '__main__':
     logger.info("Model params:")
     logger.info(pformat(model_args))
 
+    logger.info('Initializing the model')
     lit_module = LandmarksPLBaseModule(hparams=training_args.__dict__, model=model, loss=model_args.loss_module)
 
     # init data
@@ -71,7 +72,7 @@ if __name__ == '__main__':
     # train
     dt_str = datetime.datetime.now().strftime("%y%m%d_%H-%M")
     wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}',
-                               save_dir='logs/wandb/',
+                               save_dir='logs/',
                                project='landmarks')
 
     trainer = pl.Trainer(gpus=training_args.gpus,
@@ -80,6 +81,7 @@ if __name__ == '__main__':
                          num_processes=training_args.num_processes,
                          val_check_interval=training_args.val_check_interval,
                          progress_bar_refresh_rate=100,
+                         resume_from_checkpoint=training_args.resume_checkpoint
                          )
 
     trainer.fit(lit_module, datamodule=dm)
