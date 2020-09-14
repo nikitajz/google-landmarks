@@ -1,5 +1,6 @@
 import datetime
 import logging
+from pathlib import Path
 
 import joblib
 import pytorch_lightning as pl
@@ -13,6 +14,12 @@ from src.datamodule import load_train_dataframe, LandmarksDataModule
 from src.lit_module import LandmarksPLBaseModule
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed
+
+
+def get_logger_path(pl_logger):
+    """Using Pytorch-lightning logger attribute, find the directory where checkpoints to be saved for this run"""
+    checkpoints_path = Path(pl_logger.save_dir) / pl_logger.name / pl_logger.version / 'checkpoints'
+    return checkpoints_path
 
 
 if __name__ == '__main__':
@@ -33,13 +40,7 @@ if __name__ == '__main__':
                                                     min_class_samples=training_args.min_class_samples)
     train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=training_args.test_size, random_state=SEED,
                                                     stratify=train_orig_df.landmark_id)
-
-    training_args.checkpoints_path.mkdir(exist_ok=True, parents=True)
-    joblib.dump(label_enc, filename=training_args.checkpoints_path / training_args.label_encoder_filename)
-    logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
-
     num_classes = train_df.landmark_id.nunique()
-    joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
 
     model = LandmarkModel(model_name='resnet50',  # 'efficientnet-b0',
                           n_classes=num_classes,
@@ -84,8 +85,19 @@ if __name__ == '__main__':
                          resume_from_checkpoint=training_args.resume_checkpoint
                          )
 
+    try:
+        training_args.checkpoints_path = get_logger_path(trainer.logger)
+        logger.info(f'Saving checkpoints to the current directory: {training_args.checkpoints_path}')
+    except:
+        logger.warning(f'Unable to get current checkpoints directory, using default one: '
+                       f'{training_args.checkpoints_path}')
+
+    training_args.checkpoints_path.mkdir(exist_ok=True, parents=True)
+    joblib.dump(label_enc, filename=training_args.checkpoints_path / training_args.label_encoder_filename)
+    logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
+    joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
+
     trainer.fit(lit_module, datamodule=dm)
-    print(trainer.ckpt_path)
 
     # # test
     # trainer.test(datamodule=dm)

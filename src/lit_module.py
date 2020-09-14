@@ -63,7 +63,7 @@ class LandmarksPLBaseModule(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         gap_epoch = self.gap[self.val_mode].compute_final()
-        val_logs = {'val_loss': avg_loss, 'gap': gap_epoch}
+        val_logs = {'val_loss': avg_loss, 'val_gap': gap_epoch}
         # reset metrics every epoch
         self.gap[self.val_mode].reset_stats()
 

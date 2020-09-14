@@ -3,7 +3,7 @@
   "loss_module": "arcface",
   "freeze_backbone": true,
   "log_dir": "logs/",
-  "resume_checkpoint": "/evo/kaggle/landmark_recognition_2020/logs/Landmarks/1cn7mehi/checkpoints/epoch=2.ckpt",
+  "resume_checkpoint": null,
   "data_path": "data/x256",
   "data_train": "train.csv",
   "test_size": 100000,
@@ -16,7 +16,7 @@
   "gpus": "0",
   "n_epochs": 4,
   "batch_size": 32,
-  "lr": 0.003,
+  "lr": 0.03,
   "step_size": 2,
   "gamma": 0.1,
   "val_check_interval": 0.1
