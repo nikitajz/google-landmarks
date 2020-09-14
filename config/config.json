@@ -12,7 +12,7 @@
   "limit_samples_to_draw": false,
   "replacement": false,
   "shuffle": false,
-  "num_processes": 6,
+  "num_workers": 6,
   "gpus": "0",
   "n_epochs": 4,
   "batch_size": 32,

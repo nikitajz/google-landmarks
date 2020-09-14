@@ -65,7 +65,7 @@ if __name__ == '__main__':
     dm = LandmarksDataModule(train_df, valid_df,
                              image_dir=training_args.data_path,
                              batch_size=training_args.batch_size,
-                             num_workers=training_args.num_processes,
+                             num_workers=training_args.num_workers,
                              use_weighted_sampler=training_args.use_weighted_sampler,
                              replacement=training_args.replacement
                              )
@@ -79,7 +79,6 @@ if __name__ == '__main__':
     trainer = pl.Trainer(gpus=training_args.gpus,
                          logger=wandb_logger,
                          max_epochs=training_args.n_epochs,
-                         num_processes=training_args.num_processes,
                          val_check_interval=training_args.val_check_interval,
                          progress_bar_refresh_rate=100,
                          resume_from_checkpoint=training_args.resume_checkpoint

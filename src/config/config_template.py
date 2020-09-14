@@ -75,7 +75,7 @@ class TrainingArgs:
         default=False, metadata={"help": "Whether to use replacement in weighted sampler for train data dataloader"})
     shuffle: bool = field(
         default=False, metadata={"help": "Shuffle train data"})
-    num_processes: int = field(
+    num_workers: int = field(
         default=1, metadata={"help": "How many workers to use for dataloader"})
     seed: int = field(
         default=42, metadata={"help": "Random number"})
