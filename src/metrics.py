@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn.functional as F
-from pytorch_lightning.metrics.metric import TensorMetric, NumpyMetric
+from pytorch_lightning.metrics.metric import NumpyMetric
 
 
 class GAPMetric(NumpyMetric):

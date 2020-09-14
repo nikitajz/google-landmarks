@@ -84,6 +84,7 @@ if __name__ == '__main__':
                          progress_bar_refresh_rate=100,
                          resume_from_checkpoint=training_args.resume_checkpoint
                          )
+    trainer.fit(lit_module, datamodule=dm)
 
     try:
         training_args.checkpoints_path = get_logger_path(trainer.logger)
@@ -96,8 +97,6 @@ if __name__ == '__main__':
     joblib.dump(label_enc, filename=training_args.checkpoints_path / training_args.label_encoder_filename)
     logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
     joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
-
-    trainer.fit(lit_module, datamodule=dm)
 
     # # test
     # trainer.test(datamodule=dm)

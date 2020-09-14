@@ -5,6 +5,7 @@ import torch.nn as nn
 from efficientnet_pytorch import EfficientNet
 import pretrainedmodels
 import cirtorch
+from cirtorch.layers.normalization import L2N
 from .metric_learning import ArcMarginProduct, AddMarginProduct, AdaCos
 
 
@@ -31,6 +32,8 @@ class LandmarkModel(nn.Module):
             self.pooling = getattr(cirtorch.pooling, pooling_name)(**args_pooling)
         else:
             raise ValueError("Incorrect pooling name")
+
+        self.norm = L2N()
 
         self.use_fc = use_fc
         if use_fc:
@@ -72,8 +75,10 @@ class LandmarkModel(nn.Module):
 
     def extract_feat(self, x):
         batch_size = x.shape[0]
+        # feature extraction -> pooling -> norm
         x = self.backbone(x)
-        x = self.pooling(x).view(batch_size, -1)
+        x = self.pooling(x)
+        x = self.norm(x).view(batch_size, -1)
 
         if self.use_fc:
             x = self.final_block(x)
