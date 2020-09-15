@@ -1,6 +1,9 @@
 import datetime
 import logging
+import sys
+import json
 from pathlib import Path
+from typing import Union
 
 import joblib
 import pytorch_lightning as pl
@@ -20,6 +23,13 @@ def get_logger_path(pl_logger):
     """Using Pytorch-lightning logger attribute, find the directory where checkpoints to be saved for this run"""
     checkpoints_path = Path(pl_logger.save_dir) / pl_logger.name / pl_logger.version / 'checkpoints'
     return checkpoints_path
+
+
+def checkpoint_config(checkpoint_path: Union[str, Path]):
+    if sys.argv[1].endswith(".json"):
+        json_file = sys.argv[1]
+        conf_js = json.loads(Path(json_file).read_text())
+        json.dump(conf_js, open(checkpoint_path / 'config.json', 'w'))
 
 
 if __name__ == '__main__':
@@ -96,6 +106,7 @@ if __name__ == '__main__':
     joblib.dump(label_enc, filename=training_args.checkpoints_path / training_args.label_encoder_filename)
     logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
     joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
+    checkpoint_config(training_args.checkpoints_path)
 
     # # test
     # trainer.test(datamodule=dm)
