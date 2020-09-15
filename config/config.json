@@ -1,6 +1,7 @@
 {
   "model_name": "resnet18",
   "loss_module": "arcface",
+  "use_fc": true,
   "freeze_backbone": true,
   "log_dir": "logs/",
   "resume_checkpoint": null,
