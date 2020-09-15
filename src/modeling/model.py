@@ -38,7 +38,7 @@ class LandmarkModel(nn.Module):
         self.use_fc = use_fc
         if use_fc:
             self.final_block = nn.Sequential(OrderedDict([
-                ('bn1', nn.BatchNorm1d(fc_dim)),
+                ('bn1', nn.BatchNorm1d(final_in_features)),
                 ('dropout', nn.Dropout(p=dropout)),
                 ('fc2', nn.Linear(final_in_features, fc_dim)),
                 ('bn2', nn.BatchNorm1d(fc_dim))
