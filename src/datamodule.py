@@ -18,7 +18,8 @@ PathType = Union[str, Path]
 
 
 class LandmarksImageDataset(Dataset):
-    def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str, transform: Callable = None):
+    def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str, transform: Callable = None,
+                 get_img_id=False, features_name='features', target_name='targets', img_id_name='image_id'):
         assert mode in ("train", "valid", "test")
         self.df = dataframe
         self.mode = mode
@@ -26,14 +27,21 @@ class LandmarksImageDataset(Dataset):
         self.image_dir = Path(image_dir) / image_subdir
         self.image_path = ImagePath(self.image_dir)
         self.transform = transform if transform is not None else self._get_default_transform(self.mode)
+        self.get_img_id = get_img_id
+        self.features_name = features_name
+        self.target_name = target_name
+        self.img_id_name = img_id_name
 
     def __getitem__(self, idx: int):
         image_id = self.df.iat[idx, self.df.columns.get_loc("id")]
         img = Image.open(self.image_path.get_image_path(image_id)).convert('RGB')
-        outputs = (self.transform(img),)
-        if self.mode == "train" or self.mode == "valid":
+        outputs = dict()
+        outputs[self.features_name] = self.transform(img)
+        if self.get_img_id:
+            outputs[self.img_id_name] = image_id
+        if self.mode in ("train", "valid"):
             label = self.df.iat[idx, self.df.columns.get_loc("landmark_id")]
-            outputs = outputs + (label,)
+            outputs[self.target_name] = label
         return outputs
 
     def __len__(self) -> int:
@@ -131,20 +139,25 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
 
 
 class CollateBatchFn:
-    def __init__(self, features_name: str = "features", target_name: str = "targets"):
+    def __init__(self, features_name: str = "features", target_name: str = "targets", image_id_name='image_id'):
         self.features_name = features_name
         self.target_name = target_name
+        self.image_id_name = image_id_name
 
     def __call__(self, batch):
-        features = torch.stack([row[0] for row in batch], dim=0)
+        features = torch.stack([row[self.features_name] for row in batch], dim=0)
 
-        batch_dict = {
-            self.features_name: features
-        }
+        batch_dict = {self.features_name: features}
+        keys = batch[0].keys()
 
-        if len(batch[0]) == 2:
-            targets = torch.tensor([row[1] for row in batch])
+        if self.target_name in keys:
+            targets = torch.tensor([row[self.target_name] for row in batch])
             batch_dict[self.target_name] = targets
+        elif self.image_id_name in keys:
+            image_ids = [row[self.image_id_name] for row in batch]
+            batch_dict[self.image_id_name] = image_ids
+        elif keys > 1 and (self.target_name not in keys or self.image_id_name not in keys):
+            raise AttributeError("Seems incorrect column names are provided.")
         return batch_dict
 
 
@@ -210,6 +223,10 @@ class LandmarksDataModule(pl.LightningDataModule):
             self.logger.info(f'Using weighted sampler with total {n_samples} to draw. Replacement: {self.replacement}')
             self.sampler = class_imbalance_sampler(self.train_df.landmark_id, num_samples=n_samples,
                                                    replacement=self.replacement)
+
+        self.collate_fn = None
+        self.train_dataset = None
+        self.valid_dataset = None
 
     def prepare_data(self, *args, **kwargs):
         pass

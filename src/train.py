@@ -48,11 +48,11 @@ if __name__ == '__main__':
 
     train_orig_df, label_enc = load_train_dataframe(training_args.data_train,
                                                     min_class_samples=training_args.min_class_samples)
-    train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=training_args.test_size, random_state=SEED,
-                                                    stratify=train_orig_df.landmark_id)
-    num_classes = train_df.landmark_id.nunique()
+    train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=training_args.test_size,
+                                                    stratify=train_orig_df.landmark_id, random_state=SEED)
+    num_classes = len(label_enc.classes_)
 
-    model = LandmarkModel(model_name='resnet50',  # 'efficientnet-b0',
+    model = LandmarkModel(model_name=model_args.model_name,
                           n_classes=num_classes,
                           loss_module=model_args.loss_module,
                           pooling_name=model_args.pooling_name,
@@ -105,7 +105,6 @@ if __name__ == '__main__':
     training_args.checkpoints_path.mkdir(exist_ok=True, parents=True)
     joblib.dump(label_enc, filename=training_args.checkpoints_path / training_args.label_encoder_filename)
     logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
-    joblib.dump(num_classes, filename=training_args.checkpoints_path / training_args.num_classes_filename)
     checkpoint_config(training_args.checkpoints_path)
 
     # # test
