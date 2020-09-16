@@ -1,7 +1,7 @@
 albumentations==0.4.6
 efficientnet-pytorch==0.7.0
 joblib==0.16.0
-kaggle==1.5.6
+kaggle==1.5.8
 matplotlib==3.3.1
 numpy==1.19.1
 pandas==1.1.1
@@ -10,4 +10,4 @@ pretrainedmodels==0.7.4
 seaborn==0.10.1
 torch==1.6.0
 torchvision==0.7.0
-wandb==0.9.6
+wandb==0.10.0
