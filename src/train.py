@@ -13,7 +13,8 @@ from catalyst.contrib.utils import split_dataframe_train_test  # TODO: replace w
 
 from src.config.config_template import ModelArgs, TrainingArgs
 from src.config.hf_argparser import load_or_parse_args
-from src.datamodule import load_train_dataframe, LandmarksDataModule
+from src.data.datamodule import LandmarksDataModule
+from src.data.dataset import load_train_dataframe
 from src.modeling.lit_module import LandmarksPLBaseModule
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed

@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from src.config.config_template import ModelArgs, TrainingArgs
 from src.config.hf_argparser import load_or_parse_args
 from src.modeling.index import extract_features, build_index
-from src.datamodule import load_train_dataframe, CollateBatchFn, LandmarksImageDataset
+from src.data.dataset import LandmarksImageDataset, load_train_dataframe, CollateBatchFn
 from src.modeling.checkpoints import load_model_state_from_checkpoint
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed
