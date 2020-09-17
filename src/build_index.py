@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 
 from src.config.config_template import ModelArgs, TrainingArgs
 from src.config.hf_argparser import load_or_parse_args
-from src.modeling.index import extract_features, build_index
+from src.modeling.features_index import extract_features, build_index
 from src.data.dataset import LandmarksImageDataset, load_train_dataframe, CollateBatchFn
 from src.modeling.checkpoints import load_model_state_from_checkpoint
 from src.modeling.model import LandmarkModel
@@ -19,21 +19,24 @@ from src.utils import fix_seed
 CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/4a293h13/checkpoints')
 CHECKPOINT_NAME = 'epoch=1.ckpt'
 IVF_INDEX = False
+NORMALIZE_VECTORS = True
 DEVICE = torch.device('cuda:0')
 BATCH_SIZE = 512
 NUM_WORKERS = 20
-LOAD_VECTORS_FROM_CHECKPOINT = True
+LOAD_VECTORS_FROM_CHECKPOINT = False
 
 if __name__ == "__main__":
     SEED = 17
     fix_seed(SEED)
-    logger = logging.getLogger(__name__)
     start_time = datetime.datetime.now()
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.DEBUG,
+        level=logging.INFO,
     )
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
     if not LOAD_VECTORS_FROM_CHECKPOINT:
         model_args, training_args = load_or_parse_args((ModelArgs, TrainingArgs), verbose=True,
                                                        json_path=os.path.join(CHECKPOINT_DIR, 'config.json'))
@@ -66,7 +69,9 @@ if __name__ == "__main__":
 
         logger.info('Creating train dataloader')
         collate_fn = CollateBatchFn()
-        train_dataset = LandmarksImageDataset(train_orig_df, image_dir=training_args.data_path, mode="train")
+        train_dataset = LandmarksImageDataset(train_orig_df, image_dir=training_args.data_path,
+                                              get_img_id=True,
+                                              mode="train")
 
         train_loader = DataLoader(train_dataset,
                                   batch_size=BATCH_SIZE,
@@ -76,14 +81,16 @@ if __name__ == "__main__":
                                   collate_fn=collate_fn
                                   )
         logger.info('Extracting features from train images using pretrained model')
-        img_mapping, img_vectors = extract_features(model, train_loader, device=DEVICE, save_to_disk=True)
+        img_vec_mapping, img_vectors = extract_features(model, train_loader, mode='train', device=DEVICE,
+                                                        normalize=NORMALIZE_VECTORS,
+                                                        dir_to_save=CHECKPOINT_DIR)
     else:
         logger.info('Loading vectors from checkpoint')
-        img_mapping = joblib.load(os.path.join(CHECKPOINT_DIR, 'meta_vectors_train.pkl'))
+        img_vec_mapping = joblib.load(os.path.join(CHECKPOINT_DIR, 'meta_vectors_train.pkl'))
         img_vectors = joblib.load(os.path.join(CHECKPOINT_DIR, 'vectors_train.pkl'))
 
     logger.info('Building faiss index on extracted features (vectors)')
-    index = build_index(img_vectors, k=5000, path_to_save=os.path.join(CHECKPOINT_DIR, 'faiss_flat.index'))
+    index = build_index(img_vectors, dir_to_save=CHECKPOINT_DIR)
 
     end_time = datetime.datetime.now()
     logger.info('Duration: {}'.format(end_time - start_time))

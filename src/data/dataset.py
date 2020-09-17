@@ -16,7 +16,7 @@ PathType = Union[str, Path]
 
 class LandmarksImageDataset(Dataset):
     def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str, transform: Callable = None,
-                 get_img_id=False, features_name='features', target_name='targets', img_id_name='image_id'):
+                 get_img_id=False, features_name='features', target_name='targets', img_id_name='image_ids'):
         assert mode in ("train", "valid", "test")
         self.df = dataframe
         self.mode = mode
@@ -136,7 +136,7 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
 
 
 class CollateBatchFn:
-    def __init__(self, features_name: str = "features", target_name: str = "targets", image_id_name='image_id'):
+    def __init__(self, features_name: str = "features", target_name: str = "targets", image_id_name='image_ids'):
         self.features_name = features_name
         self.target_name = target_name
         self.image_id_name = image_id_name
@@ -150,22 +150,23 @@ class CollateBatchFn:
         if self.target_name in keys:
             targets = torch.tensor([row[self.target_name] for row in batch])
             batch_dict[self.target_name] = targets
-        elif self.image_id_name in keys:
+        if self.image_id_name in keys:
             image_ids = [row[self.image_id_name] for row in batch]
             batch_dict[self.image_id_name] = image_ids
-        elif keys > 1 and (self.target_name not in keys or self.image_id_name not in keys):
-            raise AttributeError("Seems incorrect column names are provided.")
         return batch_dict
 
 
 def get_test_data_loader(sub_df: DataFrame,
                          image_dir: PathType,
                          batch_size: int,
-                         num_workers: int = 4
+                         num_workers: int = 4,
+                         get_img_id=True,
                          ):
     test_dataset = LandmarksImageDataset(sub_df,
                                          image_dir=image_dir,
-                                         mode="test")
+                                         mode="test",
+                                         get_img_id=get_img_id
+                                         )
 
     collate_fn = CollateBatchFn()
     test_loader = DataLoader(test_dataset,

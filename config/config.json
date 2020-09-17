@@ -1,5 +1,5 @@
 {
-  "model_name": "resnet18",
+  "model_name": "resnet50",
   "loss_module": "arcface",
   "use_fc": true,
   "freeze_backbone": true,
