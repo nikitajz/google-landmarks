@@ -19,15 +19,32 @@ from src.modeling.features_index import extract_features
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed
 
-CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/4a293h13/checkpoints')
+KAGGLE_KERNEL_RUN_TYPE = os.environ.get('KAGGLE_KERNEL_RUN_TYPE', 'Localhost')
+if KAGGLE_KERNEL_RUN_TYPE in ('Batch', 'Interactive'):
+    CODE_DIR = '/kaggle/input/landmarks-2020-lightning/'
+    CHECKPOINT_DIR = os.path.join(CODE_DIR, 'checkpoints')
+    SUBMISSION_PATH = os.path.join(CHECKPOINT_DIR, 'submission.csv')
 
-CHECKPOINT_NAME = 'epoch=1.ckpt'
+    import sys
+
+    sys.path.append(CODE_DIR)
+    DEVICE = 'cuda:0'
+    BATCH_SIZE = 128
+    NUM_WORKERS = 4
+elif KAGGLE_KERNEL_RUN_TYPE == 'Localhost':
+    CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/4a293h13/checkpoints')
+    SUBMISSION_PATH = 'submission.csv'
+    DEVICE = 'cuda:0'
+    BATCH_SIZE = 512
+    NUM_WORKERS = 20
+else:
+    raise ValueError("Unknown environment exception")
+
+CHECKPOINT_NAME = 'epoch_1.ckpt'
 NORMALIZE_VECTORS = True
-DEVICE = torch.device('cuda:1')
-BATCH_SIZE = 512
-NUM_WORKERS = 20
 LOAD_VECTORS_FROM_CHECKPOINT = False
 TOPK = 5
+DEVICE = torch.device(DEVICE)
 
 if __name__ == "__main__":
     SEED = 17
@@ -113,4 +130,4 @@ if __name__ == "__main__":
     # save submit file
     logger.info('Saving the predictions to submission.csv')
     submission_df['landmarks'] = f'{pred_labels} {pred_cnt / float(TOPK)}'
-    submission_df.to_csv(training_args.data_path/'submission.csv', index=False)
+    submission_df.to_csv(SUBMISSION_PATH, index=False)

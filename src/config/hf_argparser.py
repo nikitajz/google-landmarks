@@ -181,12 +181,12 @@ def load_or_parse_args(dataclass_types, verbose=False, json_path=None):
     """
     parser = HfArgumentParser(dataclass_types)
 
-    if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
+    if json_path is not None:
+        seq_args = parser.parse_json_file(json_file=os.path.abspath(json_path))
+    elif len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
         seq_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
-    elif len(sys.argv) == 1 and json_path is not None:
-        seq_args = parser.parse_json_file(json_file=os.path.abspath(json_path))
     else:
         seq_args = parser.parse_args_into_dataclasses()
 
