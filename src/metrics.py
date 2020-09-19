@@ -49,16 +49,14 @@ class GAPMetric(NumpyMetric):
         self.confs = []
         self.labels = []
 
-    @torch.no_grad()
     def forward(self, output_batch, labels_batch):
-        output_sm = F.softmax(output_batch, dim=1)
-        confs_batch, preds_batch = torch.max(output_sm, dim=1)
+        with torch.no_grad():
+            output_sm = F.softmax(output_batch, dim=1)
+            confs_batch, preds_batch = torch.max(output_sm, dim=1)
 
-        self.preds.append(preds_batch.cpu().numpy())
-        self.confs.append(confs_batch.cpu().numpy())
-        self.labels.append(labels_batch.cpu().numpy())
-
-        return
+            self.preds.append(preds_batch.cpu().numpy())
+            self.confs.append(confs_batch.cpu().numpy())
+            self.labels.append(labels_batch.cpu().numpy())
 
     def compute_final(self):
         return self._compute_metric()

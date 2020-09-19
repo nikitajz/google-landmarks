@@ -6,7 +6,7 @@ from efficientnet_pytorch import EfficientNet
 import pretrainedmodels
 import cirtorch
 from cirtorch.layers.normalization import L2N
-from .metric_learning import ArcMarginProduct, AddMarginProduct, AdaCos
+from .metric_learning import ArcMarginProduct
 
 
 class LandmarkModel(nn.Module):
@@ -19,11 +19,8 @@ class LandmarkModel(nn.Module):
                  use_fc: bool = False,
                  fc_dim: int = 512,
                  dropout: float = 0.0,
-                 loss_module: str = 'softmax',
-                 s=30.0,
-                 margin=0.50,
-                 ls_eps=0.0,
-                 theta_zero=0.785):
+                 loss_module: str = 'softmax'
+                 ):
         super().__init__()
         self.backbone, final_in_features = self.get_backbone(model_name, pretrained)
         if pooling_name in ('AdaptiveAvgPool2d', 'adaptive'):
@@ -48,14 +45,11 @@ class LandmarkModel(nn.Module):
 
         self.loss_module = loss_module
         if loss_module == 'arcface':
-            self.final = ArcMarginProduct(final_in_features, n_classes,
-                                          s=s, m=margin, easy_margin=False, ls_eps=ls_eps)
-        elif loss_module == 'cosface':
-            self.final = AddMarginProduct(final_in_features, n_classes, s=s, m=margin)
-        elif loss_module == 'adacos':
-            self.final = AdaCos(final_in_features, n_classes, m=margin, theta_zero=theta_zero)
+            self.final = ArcMarginProduct(final_in_features, n_classes)
         else:
-            self.final = nn.Linear(final_in_features, n_classes)
+            self.final = nn.Sequential(
+                L2N(),
+                nn.Linear(final_in_features, n_classes))
 
     def _init_params(self):
         nn.init.xavier_normal_(self.final_block.fc2.weight)
@@ -67,10 +61,7 @@ class LandmarkModel(nn.Module):
 
     def forward(self, x, label):
         feature = self.extract_feat(x)
-        if self.loss_module in ('arcface', 'cosface', 'adacos'):
-            logits = self.final(feature, label)
-        else:
-            logits = self.final(feature)
+        logits = self.final(feature)
         return logits
 
     def extract_feat(self, x):
@@ -78,7 +69,7 @@ class LandmarkModel(nn.Module):
         # feature extraction -> pooling -> norm
         x = self.backbone(x)
         x = self.pooling(x)
-        x = self.norm(x).view(batch_size, -1)
+        x = x.view(batch_size, -1)
 
         if self.use_fc:
             x = self.final_block(x)

@@ -46,7 +46,8 @@ LOAD_VECTORS_FROM_CHECKPOINT = False
 TOPK = 5
 DEVICE = torch.device(DEVICE)
 
-if __name__ == "__main__":
+
+def main():
     SEED = 17
     fix_seed(SEED)
     start_time = datetime.datetime.now()
@@ -131,3 +132,10 @@ if __name__ == "__main__":
     logger.info('Saving the predictions to submission.csv')
     submission_df['landmarks'] = f'{pred_labels} {pred_cnt / float(TOPK)}'
     submission_df.to_csv(SUBMISSION_PATH, index=False)
+
+    end_time = datetime.datetime.now()
+    logger.info('Duration: {}'.format(end_time - start_time))
+
+
+if __name__ == "__main__":
+    main()

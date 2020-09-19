@@ -29,13 +29,9 @@ class ModelArgs:
         default='softmax',
         metadata={"help": "Loss module. Available options are: ('softmax', 'arcface', 'cosface', 'adacos')"})
     s: float = field(
-        default=30.0, metadata={"help": "Loss option 's'"})
+        default=30.0, metadata={"help": "ArcFaceLoss option 's'"})
     margin: float = field(
-        default=0.50, metadata={"help": "Loss option 'margin'"})
-    ls_eps: float = field(
-        default=0.0, metadata={"help": "Loss option 'ls_eps'"})
-    theta_zero: float = field(
-        default=0.785, metadata={"help": "Loss option 'theta_zero'"})
+        default=0.50, metadata={"help": "ArcFaceLoss option 'margin'"})
 
     def __post_init__(self):
         self.loss_module = self.loss_module.lower()
@@ -64,8 +60,8 @@ class TrainingArgs:
     test_size: int = field(
         default=0.1,
         metadata={"help": "Filter out classes with fewer samples"})
-    min_class_samples: int = field(
-        default=10,
+    min_class_samples: Optional[int] = field(
+        default=None,
         metadata={"help": "Filter out classes with fewer samples"})
     use_weighted_sampler: bool = field(
         default=False, metadata={"help": "Use weighted sampler"})

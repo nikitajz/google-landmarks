@@ -153,6 +153,13 @@ class HfArgumentParser(ArgumentParser):
         instead loading a json file and populating the dataclass types.
         """
         data = json.loads(Path(json_file).read_text())
+        return self.parse_dict(data)
+
+    def parse_dict(self, data):
+        """Parse dict according to supplied data classes.
+        :param data: dict or json file.
+        :return: parse argument
+        """
         outputs = []
         for dtype in self.dataclass_types:
             keys = {f.name for f in dataclasses.fields(dtype)}

@@ -93,7 +93,7 @@ class ImagePath:
 
 
 def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 10,
-                         validate_image_path: bool = False) -> Tuple[DataFrame, LabelEncoder]:
+                         check_image_path_exists: bool = False) -> Tuple[DataFrame, Optional[LabelEncoder]]:
     """
     Load dataframe from the file `train.csv` containing `image_id` and `landmark_id` (class_id) mapping.
     Parameters
@@ -102,7 +102,7 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
         Path to the `train.csv` file.
     min_class_samples
         Minimum number of samples per class. Remove classes with number of samples below threshold.
-    validate_image_path
+    check_image_path_exists
         Whether to check if file corresponding to image_id actually exists (time-consuming).
     Returns
     -------
@@ -110,8 +110,8 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
     """
     df = pd.read_csv(csv_path)
     logger.debug(f'Initial number of samples: {df.shape[0]}')
-    if validate_image_path:
-        logger.debug('Validating images exist')
+    if check_image_path_exists:
+        logger.debug('Checking that images exist')
         image_dir = csv_path.parent / 'train'
         image_path = ImagePath(image_dir)
         df = df.loc[df.id.apply(image_path.exists)]
@@ -123,16 +123,18 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
         num_classes = len(selected_classes)
         logger.debug(f'Selected number of classes: {num_classes}')
         df = df.loc[df.landmark_id.isin(selected_classes)]
+
+        # Encoding labels
+        label_encoder = LabelEncoder()
+        label_encoder.fit(df.landmark_id.values)
+        assert len(label_encoder.classes_) == num_classes
+        df.landmark_id = label_encoder.transform(df.landmark_id)
+
+        return df, label_encoder
     else:
         num_classes = df.landmark_id.nunique()
         logger.info(f'Number of classes: {num_classes}')
-
-    label_encoder = LabelEncoder()
-    label_encoder.fit(df.landmark_id.values)
-    assert len(label_encoder.classes_) == num_classes
-    df.landmark_id = label_encoder.transform(df.landmark_id)
-
-    return df, label_encoder
+        return df, None
 
 
 class CollateBatchFn:

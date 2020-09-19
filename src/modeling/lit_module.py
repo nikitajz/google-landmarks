@@ -1,10 +1,12 @@
 import pytorch_lightning as pl
+from pytorch_lightning.metrics import Accuracy
 import torch
 import torch.nn as nn
 import torch.optim.lr_scheduler as lr_scheduler
 
 from src.metrics import GAPMetric
 from src.modeling.focal_loss import FocalLoss
+from src.modeling.metric_learning import ArcFaceLoss
 
 
 class LandmarksPLBaseModule(pl.LightningModule):
@@ -13,8 +15,11 @@ class LandmarksPLBaseModule(pl.LightningModule):
         self.hparams = hparams
         # model
         self.model = model
-        if loss in ("ce", 'cross-entropy', 'logloss', 'arcface', 'cosface', 'adacos'):
+        if loss in ("ce", 'cross-entropy'):
             self.loss_fn = nn.CrossEntropyLoss()
+        elif loss in ('arcface', 'cosface', 'adacos'):
+            self.loss_fn = ArcFaceLoss(s=hparams.get('s', 30.0),
+                                       m=hparams.get('m', 0.50))
         elif loss == 'focal_loss':
             self.loss_fn = FocalLoss(gamma=2)
         else:
@@ -38,18 +43,19 @@ class LandmarksPLBaseModule(pl.LightningModule):
         assert mode in ('train', 'val')
         labels = batch["targets"]
         features = batch["features"]
-        y_hat = self.model(features, labels)
+        logits = self.model(features, labels)
         if self.loss_fn is not None:
-            loss_value = self.loss_fn(y_hat, labels)
+            loss_value = self.loss_fn(logits, labels)
         else:
-            loss_value = y_hat
+            loss_value = logits
         gap_value = None
         if mode == self.val_mode:
-            gap_value = self.gap[mode].forward(y_hat, labels)
-        return loss_value, gap_value
+            gap_value = self.gap[mode].forward(logits, labels)
+        y_hat = torch.argmax(logits, dim=1)
+        return loss_value, gap_value, y_hat
 
     def training_step(self, batch, batch_idx):
-        loss, gap_batch = self._compute_step(batch, batch_idx, mode=self.train_mode)
+        loss, gap_batch, preds = self._compute_step(batch, batch_idx, mode=self.train_mode)
         logs_train = {'train_loss': loss}
         return {'loss': loss, 'log': logs_train}
 
@@ -57,18 +63,25 @@ class LandmarksPLBaseModule(pl.LightningModule):
         self.gap[self.train_mode].reset_stats()
 
     def validation_step(self, batch, batch_idx, *args, **kwargs):
-        loss, gap_batch = self._compute_step(batch, batch_idx, mode=self.val_mode)
-        return {'val_loss': loss}
+        loss, gap_batch, preds = self._compute_step(batch, batch_idx, mode=self.val_mode)
+        outputs = {'val_loss': loss,
+                   'targets': batch['targets'],
+                   'preds': preds}
+        return outputs
 
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         gap_epoch = self.gap[self.val_mode].compute_final()
-        val_logs = {'val_loss': avg_loss, 'val_gap': gap_epoch}
+        acc_metric = Accuracy()
+        val_acc = acc_metric.forward(pred=torch.stack([batch['preds'] for batch in outputs]),
+                                     target=torch.stack([batch['targets'] for batch in outputs]))
+        val_logs = {'val_loss': avg_loss, 'val_gap': gap_epoch, 'val_acc': val_acc}
         # reset metrics every epoch
         self.gap[self.val_mode].reset_stats()
 
         return {
             'val_loss': avg_loss,
+            'val_acc': val_acc,
             'log': val_logs,
-            'progress_bar': {'gap': gap_epoch}
+            'progress_bar': {'val_acc': val_acc, 'gap': gap_epoch}
         }
