@@ -5,6 +5,7 @@ from pprint import pformat
 import joblib
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 from catalyst.contrib.utils import split_dataframe_train_test  # TODO: replace with non-catalyst method
 
 from src.config.config_template import ModelArgs, TrainingArgs
@@ -54,10 +55,15 @@ def main():
     wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}',
                                save_dir='logs/',
                                project='landmarks')
+    ckpt_path = 'logs/checkpoints/classification/{epoch}-{val_loss:2f}-{val_acc:2f}.ckpt'
+    checkpoint_callback = ModelCheckpoint(filepath=ckpt_path,
+                                          monitor='val_acc',
+                                          save_top_k=3)
     trainer = pl.Trainer(gpus=training_args.gpus,
                          logger=wandb_logger,
                          max_epochs=training_args.n_epochs,
                          val_check_interval=training_args.val_check_interval,
+                         checkpoint_callback=checkpoint_callback,
                          progress_bar_refresh_rate=100,
                          resume_from_checkpoint=training_args.resume_checkpoint,
                          # fast_dev_run=True,
