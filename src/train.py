@@ -40,6 +40,7 @@ def main():
                           loss_module=model_args.loss_module,
                           pooling_name=model_args.pooling_name,
                           args_pooling=model_args.args_pooling,
+                          normalize=model_args.normalize,
                           use_fc=model_args.use_fc,
                           fc_dim=model_args.fc_dim,
                           dropout=model_args.dropout

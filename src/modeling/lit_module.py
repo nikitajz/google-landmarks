@@ -1,3 +1,4 @@
+import logging
 import pytorch_lightning as pl
 from pytorch_lightning.metrics import Accuracy
 import torch
@@ -7,6 +8,8 @@ import torch.optim.lr_scheduler as lr_scheduler
 from src.metrics import GAPMetric
 from src.modeling.focal_loss import FocalLoss
 from src.modeling.metric_learning import ArcFaceLoss
+
+logger = logging.getLogger(__name__)
 
 
 class LandmarksPLBaseModule(pl.LightningModule):
@@ -30,12 +33,12 @@ class LandmarksPLBaseModule(pl.LightningModule):
                     self.val_mode: GAPMetric()
                     }
 
-    def forward(self, x, label):
-        return self.model.forward(x, label)
+    def forward(self, x):
+        return self.model.forward(x)
 
     def configure_optimizers(self):
         if self.hparams.freeze_backbone:
-            self.logger.info('Freezing backbone')
+            logger.info('Freezing backbone')
             params = [param for name, param in self.named_parameters() if 'backbone' not in name]
         else:
             params = self.parameters()

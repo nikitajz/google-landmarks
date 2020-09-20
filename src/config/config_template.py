@@ -8,8 +8,6 @@ from typing import Optional, Dict
 class ModelArgs:
     model_name: str = field(
         metadata={"help": "Pretrained model name, e.g. `efficientnet-b4`"})
-    freeze_backbone: bool = field(
-        default=True, metadata={"help": "Freeze Roberta model and train only classifier"})
     cache_dir: Optional[str] = field(
         default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"})
     pooling_name: str = field(
@@ -17,6 +15,8 @@ class ModelArgs:
         metadata={"help": "Pooling layer. Available options are: 'MAC', 'SPoC', 'GeM', 'GeMmp', 'RMAC', 'Rpool'"})
     args_pooling: Dict = field(
         default_factory=dict, metadata={"help": "Pooling arguments"})
+    normalize: bool = field(
+        default=True, metadata={"help": "Whether to use L2N to normalize vectors (see model details)"})
     use_fc: bool = field(
         default=False, metadata={"help": "Whether to use FC block layer (see model details)"})
     fc_dim: int = field(
@@ -37,6 +37,8 @@ class ModelArgs:
 
 @dataclass
 class TrainingArgs:
+    freeze_backbone: bool = field(
+        default=False, metadata={"help": "Freeze Roberta model and train only classifier"})
     log_dir: Optional[str] = field(
         default="logs",
         metadata={"help": "Path to save training artifacts (logs, checkpoints, etc)"})
