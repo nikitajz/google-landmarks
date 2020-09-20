@@ -74,7 +74,8 @@ class LandmarksDataModule(pl.LightningDataModule):
                                   shuffle=False,  # due to using sampler
                                   sampler=self.sampler,
                                   num_workers=self.num_workers,
-                                  collate_fn=self.collate_fn
+                                  collate_fn=self.collate_fn,
+                                  drop_last=True
                                   )
         return train_loader
 
@@ -84,7 +85,8 @@ class LandmarksDataModule(pl.LightningDataModule):
                                   shuffle=False,
                                   sampler=None,
                                   num_workers=self.num_workers,
-                                  collate_fn=self.collate_fn
+                                  collate_fn=self.collate_fn,
+                                  drop_last=True
                                   )
         return valid_loader
 

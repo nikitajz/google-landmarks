@@ -22,6 +22,7 @@ def main():
     model_args, training_args = load_or_parse_args((ModelArgs, TrainingArgs), verbose=True)
     train_orig_df, label_enc = load_train_dataframe(training_args.data_train,
                                                     min_class_samples=training_args.min_class_samples)
+    # assert training_args.test_size % training_args.batch_size == 0, "Test size should be multiple of batch size"
     train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=training_args.test_size,
                                                     stratify=train_orig_df.landmark_id, random_state=SEED)
     num_classes = train_df.landmark_id.nunique() if training_args.min_class_samples is None else len(label_enc.classes_)
@@ -59,6 +60,9 @@ def main():
                          val_check_interval=training_args.val_check_interval,
                          progress_bar_refresh_rate=100,
                          resume_from_checkpoint=training_args.resume_checkpoint,
+                         # fast_dev_run=True,
+                         # limit_train_batches=5,
+                         # limit_val_batches=5
                          )
     trainer.fit(lit_module, datamodule=dm)
     try:
