@@ -55,8 +55,8 @@ def main():
     wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}',
                                save_dir='logs/',
                                project='landmarks')
-    ckpt_path = 'logs/checkpoints/classification/{epoch}-{val_loss:2f}-{val_acc:2f}.ckpt'
-    checkpoint_callback = ModelCheckpoint(filepath=ckpt_path,
+
+    checkpoint_callback = ModelCheckpoint(filepath=training_args.ckpt_path,
                                           monitor='val_acc',
                                           save_top_k=3)
     trainer = pl.Trainer(gpus=training_args.gpus,

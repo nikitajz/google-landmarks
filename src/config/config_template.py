@@ -10,8 +10,6 @@ class ModelArgs:
         metadata={"help": "Pretrained model name, e.g. `efficientnet-b4`"})
     freeze_backbone: bool = field(
         default=True, metadata={"help": "Freeze Roberta model and train only classifier"})
-    load_checkpoint: bool = field(
-        default=False, metadata={"help": "Whether to load pretrained model from last checkpoint"})
     cache_dir: Optional[str] = field(
         default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"})
     pooling_name: str = field(
@@ -45,6 +43,10 @@ class TrainingArgs:
     resume_checkpoint: Optional[str] = field(
         default=None,
         metadata={"help": "Path to model checkpoint to resume training from"}
+    )
+    ckpt_path: Optional[str] = field(
+        default=None,
+        metadata={"help": "Path to save model checkpoint (can include placeholders)"}
     )
     data_path: str = field(
         default="data/x256/", metadata={"help": "Folder where data located"})
