@@ -4,18 +4,15 @@ import os
 from pprint import pformat
 
 import joblib
-import faiss
-import numpy as np
-from scipy.stats import mode
 import pandas as pd
 import torch
+import torch.nn as nn
 from sklearn.preprocessing import LabelEncoder
 
 from src.config.config_template import TrainingArgs, ModelArgs
 from src.config.hf_argparser import load_or_parse_args
 from src.data.dataset import get_test_data_loader
 from src.modeling.checkpoints import load_model_state_from_checkpoint
-from src.modeling.features_index import extract_features
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed
 
@@ -32,7 +29,7 @@ if KAGGLE_KERNEL_RUN_TYPE in ('Batch', 'Interactive'):
     BATCH_SIZE = 128
     NUM_WORKERS = 4
 elif KAGGLE_KERNEL_RUN_TYPE == 'Localhost':
-    CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/4a293h13/checkpoints')
+    CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/9gm87ers/checkpoints')
     SUBMISSION_PATH = 'submission.csv'
     DEVICE = 'cuda:0'
     BATCH_SIZE = 512
@@ -43,12 +40,22 @@ else:
 CHECKPOINT_NAME = 'epoch_1.ckpt'
 NORMALIZE_VECTORS = True
 LOAD_VECTORS_FROM_CHECKPOINT = False
-TOPK = 5
+# TOPK = 5
+THRESHOLD = 0.45  # empty string for images below the score
 DEVICE = torch.device(DEVICE)
+SEED = 17
+
+
+# postprocessing
+def postprocessing_omit_low_scores(row):
+    if row['scores'] > THRESHOLD:
+        landmark_str = str(row['labels']) + ' ' + str(row['scores'])
+    else:
+        landmark_str = ''
+    return landmark_str
 
 
 def main():
-    SEED = 17
     fix_seed(SEED)
     start_time = datetime.datetime.now()
     logging.basicConfig(
@@ -69,6 +76,7 @@ def main():
 
     # create model and load weights from checkpoint
     model = LandmarkModel(model_name=model_args.model_name,
+                          pretrained=False,
                           n_classes=num_classes,
                           loss_module=model_args.loss_module,
                           pooling_name=model_args.pooling_name,
@@ -86,51 +94,35 @@ def main():
     submission_df = pd.read_csv(training_args.data_path / 'sample_submission.csv')
     test_loader = get_test_data_loader(submission_df, image_dir=training_args.data_path,
                                        batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
-    # load index
-    index = faiss.read_index(os.path.join(CHECKPOINT_DIR, 'flat.index'))
 
-    # extract feature vectors for test images
-    if not LOAD_VECTORS_FROM_CHECKPOINT:
-        img_mapping_test, img_vectors_test = extract_features(model, test_loader, mode='test', device=DEVICE,
-                                                              normalize=NORMALIZE_VECTORS,
-                                                              dir_to_save=CHECKPOINT_DIR)
-    else:
-        logger.info('Loading vectors from checkpoint')
-        img_mapping_test = joblib.load(os.path.join(CHECKPOINT_DIR, 'meta_vectors_test.pkl'))
-        img_vectors_test = joblib.load(os.path.join(CHECKPOINT_DIR, 'vectors_test.pkl'))
+    # predict on test dataset
+    model.eval()
+    model.to(DEVICE)
+    activation = nn.Softmax(dim=1)
+    confs_list = []
+    preds_list = []
+    with torch.no_grad():
+        for batch in test_loader:
+            y_hat = model(batch['features'].to(DEVICE))
+            y_hat = activation(y_hat)
 
-    logger.info('Loading train vectors mapping')
-    train_vec_mapping = joblib.load(os.path.join(CHECKPOINT_DIR, 'meta_vectors_train.pkl'))
+            confs_batch, preds_batch = torch.topk(y_hat, 1)
+            confs_list.append(confs_batch)
+            preds_list.append(preds_batch)
+        confs = torch.cat(confs_list).cpu().numpy()
+        preds = torch.cat(preds_list).cpu().numpy()
+    pred_labels = [label_enc.inverse_transform(pred) for pred in preds]
 
-    # train_vec_image_ids = train_vec_mapping['image_ids']
-    train_vec_targets = train_vec_mapping['targets']
-
-    # predict kNN for each test image (topk = 3)
-    logger.info('Searching for nearest neighbours')
-    # this predicts nearest train vector id which needs to be converted in to the label
-    pred_dist, pred_vec_id = index.search(img_vectors_test, TOPK)
-
-    logger.info('Extracting label encoded target class_id')
-    preds_vec = np.vectorize(lambda x: train_vec_targets[x])(pred_vec_id)
-
-    logger.info('Picking up most common labels for each vector')
-    pred_mode, pred_cnt = mode(preds_vec, axis=1)
-    # threshold_dist = 0.007
-    # pred_mode_final = np.where(pred_dist >= threshold_dist, preds_vec, np.nan)
-
-    # inverse_transform predicted labels by label encoder
-    logger.info('Label encoder inverse transform labels')
-    pred_labels = label_enc.inverse_transform(pred_mode[:, 0])
-
-    # rerank (optional)
+    pred_labels = [label[0] for label in pred_labels]
+    confidence_score = [score[0] for score in confs]
 
     # save submit file
     logger.info('Saving the predictions to submission.csv')
     submission_df['labels'] = pred_labels
-    submission_df['cnt'] = pred_cnt / pred_cnt.max()
-    submission_df['landmarks'] = submission_df.apply(lambda x: str(x['labels']) + ' ' + str(x['cnt']), axis=1)
+    submission_df['scores'] = confidence_score
+    submission_df['landmarks'] = submission_df.apply(postprocessing_omit_low_scores, axis=1)
     del submission_df['labels']
-    del submission_df['cnt']
+    del submission_df['scores']
     submission_df.to_csv(SUBMISSION_PATH, index=False)
 
     end_time = datetime.datetime.now()

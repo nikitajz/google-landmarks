@@ -59,7 +59,7 @@ class LandmarkModel(nn.Module):
         nn.init.constant_(self.final_block.bn2.weight, 1)
         nn.init.constant_(self.final_block.bn2.bias, 0)
 
-    def forward(self, x, label):
+    def forward(self, x):
         feature = self.extract_feat(x)
         logits = self.final(feature)
         return logits
