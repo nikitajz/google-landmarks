@@ -23,6 +23,12 @@ def main():
     model_args, training_args = load_or_parse_args((ModelArgs, TrainingArgs), verbose=True)
     train_orig_df, label_enc = load_train_dataframe(training_args.data_train,
                                                     min_class_samples=training_args.min_class_samples)
+    # save checkpoints
+    training_args.checkpoints_path.mkdir(exist_ok=True, parents=True)
+    joblib.dump(label_enc, filename=training_args.checkpoints_path / training_args.label_encoder_filename)
+    logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
+    save_config_checkpoint(training_args.checkpoints_path)
+
     # assert training_args.test_size % training_args.batch_size == 0, "Test size should be multiple of batch size"
     train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=training_args.test_size,
                                                     stratify=train_orig_df.landmark_id, random_state=SEED)
@@ -55,10 +61,12 @@ def main():
     wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}',
                                save_dir='logs/',
                                project='landmarks')
-
-    checkpoint_callback = ModelCheckpoint(filepath=training_args.ckpt_path,
+    checkpoints_model_path = training_args.checkpoints_dir / '{epoch}-{val_loss:.2f}-{val_acc:.2f}'
+    checkpoint_callback = ModelCheckpoint(filepath=checkpoints_model_path,
                                           monitor='val_acc',
-                                          save_top_k=3)
+                                          mode='max',
+                                          save_top_k=3,
+                                          verbose=True)
     trainer = pl.Trainer(gpus=training_args.gpus,
                          logger=wandb_logger,
                          max_epochs=training_args.n_epochs,
@@ -77,12 +85,7 @@ def main():
     except:
         logger.warning(f'Unable to get current checkpoints directory, using default one: '
                        f'{training_args.checkpoints_path}')
-    training_args.checkpoints_path.mkdir(exist_ok=True, parents=True)
-    joblib.dump(label_enc, filename=training_args.checkpoints_path / training_args.label_encoder_filename)
-    logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
-    save_config_checkpoint(training_args.checkpoints_path)
-    # # test
-    # trainer.test(datamodule=dm)
+
     end_time = datetime.datetime.now()
     logger.info('Duration: {}'.format(end_time - start_time))
 

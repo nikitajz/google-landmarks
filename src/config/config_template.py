@@ -44,7 +44,7 @@ class TrainingArgs:
         default=None,
         metadata={"help": "Path to model checkpoint to resume training from"}
     )
-    ckpt_path: Optional[str] = field(
+    checkpoints_dir: Optional[str] = field(
         default=None,
         metadata={"help": "Path to save model checkpoint (can include placeholders)"}
     )
@@ -119,6 +119,6 @@ class TrainingArgs:
         self.data_path = Path(self.data_path) if not_kernel else Path("/kaggle/input/landmark-recognition-2020")
         self.data_train = self.data_path / self.data_train
         self.log_dir = Path(self.log_dir)
-        self.checkpoints_path = Path(self.log_dir) / "checkpoints"
+        self.checkpoints_dir = Path(self.checkpoints_dir)
         self.label_encoder_filename = "label_encoder.jl"
         self.num_classes_filename = "num_classes.jl"
