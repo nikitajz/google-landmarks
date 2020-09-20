@@ -2,6 +2,7 @@
   "model_name": "se_resnext50_32x4d",
   "loss_module": "arcface",
   "use_fc": true,
+  "freeze_backbone": true,
   "log_dir": "logs/",
   "resume_checkpoint": null,
   "checkpoints_dir": "logs/checkpoints/classification/",

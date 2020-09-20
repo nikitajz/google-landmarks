@@ -34,7 +34,12 @@ class LandmarksPLBaseModule(pl.LightningModule):
         return self.model.forward(x, label)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
+        if self.hparams.freeze_backbone:
+            self.logger.info('Freezing backbone')
+            params = [param for name, param in self.named_parameters() if 'backbone' not in name]
+        else:
+            params = self.parameters()
+        optimizer = torch.optim.Adam(params, lr=self.hparams.lr)
 
         scheduler = lr_scheduler.StepLR(optimizer, step_size=self.hparams.step_size, gamma=self.hparams.gamma)
         return [optimizer], [scheduler]
