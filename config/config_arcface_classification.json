@@ -4,7 +4,7 @@
   "use_fc": true,
   "freeze_backbone": true,
   "log_dir": "logs/",
-  "resume_checkpoint": "logs/Landmarks/9gm87ers/checkpoints/epoch=2.ckpt",
+  "resume_checkpoint": "logs/checkpoints/classification_init_v/epoch_4-val_loss_15.45-val_acc_0.136.ckpt",
   "checkpoints_dir": "logs/checkpoints/classification/",
   "data_path": "data/x256",
   "data_train": "train.csv",
