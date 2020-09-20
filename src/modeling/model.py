@@ -90,7 +90,7 @@ class LandmarkModel(nn.Module):
             #         num_classes=out_features)
             # HACK: work around for this issue https://github.com/Cadene/pretrained-models.pytorch/issues/120
             # fc_in_features = model._fc.in_features
-        elif model_name.startswith('resnet') or model_name.startswith('resnext') or model_name.startswith('densenet'):
+        elif model_name in pretrainedmodels.model_names:
             model = getattr(pretrainedmodels, model_name)(num_classes=1000,
                                                           pretrained='imagenet' if pretrained else None)
             fc_in_features = model.last_linear.in_features
@@ -98,8 +98,6 @@ class LandmarkModel(nn.Module):
             exclude_layers = ('avgpool', 'fc', 'last_linear')
             model = nn.Sequential(
                 OrderedDict((name, m) for name, m in model.named_children() if name not in exclude_layers))
-            # model.avgpool = nn.AdaptiveAvgPool2d(1)
-            # model.last_linear = nn.Linear(in_features=fc_in_features, out_features=out_features)
         else:
             raise NotImplementedError("No other models available so far")
 

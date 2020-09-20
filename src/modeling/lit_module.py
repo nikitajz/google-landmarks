@@ -43,7 +43,7 @@ class LandmarksPLBaseModule(pl.LightningModule):
         assert mode in ('train', 'val')
         labels = batch["targets"]
         features = batch["features"]
-        logits = self.model(features, labels)
+        logits = self.model(features)
         if self.loss_fn is not None:
             loss_value = self.loss_fn(logits, labels)
         else:
