@@ -28,8 +28,8 @@ class LandmarkModel(nn.Module):
             self.pooling = nn.AdaptiveAvgPool2d(1)
         elif pooling_name in ('MAC', 'SPoC', 'GeM', 'GeMmp', 'RMAC', 'Rpool'):
             self.pooling = getattr(cirtorch.pooling, pooling_name)(**args_pooling)
-        elif pooling_name is None:
-            self.pooling = None
+        elif pooling_name is None or pooling_name.lower() == 'identity':
+            self.pooling = nn.Identity()
         else:
             raise ValueError("Incorrect pooling name")
         if normalize:
@@ -71,8 +71,7 @@ class LandmarkModel(nn.Module):
         batch_size = x.shape[0]
         # feature extraction -> pooling -> norm
         x = self.backbone(x)
-        if self.pooling is not None:
-            x = self.pooling(x)
+        x = self.pooling(x)
         if self.norm is not None:
             x = self.norm(x)
         x = x.view(batch_size, -1)

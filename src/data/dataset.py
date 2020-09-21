@@ -68,13 +68,14 @@ class LandmarksImageDataset(Dataset):
                                         scale=(0.8, 1.2), shear=15,
                                         resample=Image.BILINEAR)
             ]),
-            transforms.RandomCrop(224)
+            # transforms.RandomCrop(224)
         ]
 
         if mode == 'train':
             all_transforms = [base_transforms, augmentations, convert_n_normalize]
         else:
-            all_transforms = [base_transforms, center_crop, convert_n_normalize]
+            # all_transforms = [base_transforms, center_crop, convert_n_normalize]
+            all_transforms = [base_transforms, convert_n_normalize]
 
         return transforms.Compose([item for sublist in all_transforms for item in sublist])
 

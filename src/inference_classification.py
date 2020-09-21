@@ -20,27 +20,26 @@ KAGGLE_KERNEL_RUN_TYPE = os.environ.get('KAGGLE_KERNEL_RUN_TYPE', 'Localhost')
 if KAGGLE_KERNEL_RUN_TYPE in ('Batch', 'Interactive'):
     CODE_DIR = '/kaggle/input/landmarks-2020-lightning/'
     CHECKPOINT_DIR = os.path.join(CODE_DIR, 'checkpoints')
-    SUBMISSION_PATH = os.path.join(CHECKPOINT_DIR, 'submission.csv')
+    SUBMISSION_PATH = 'submission.csv'
 
     import sys
-
     sys.path.append(CODE_DIR)
     DEVICE = 'cuda:0'
     BATCH_SIZE = 128
     NUM_WORKERS = 4
 elif KAGGLE_KERNEL_RUN_TYPE == 'Localhost':
-    CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/9gm87ers/checkpoints')
-    SUBMISSION_PATH = 'submission.csv'
+    CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/2uglfbx6/checkpoints')
+    SUBMISSION_PATH = os.path.join(CHECKPOINT_DIR, 'submission.csv')
     DEVICE = 'cuda:0'
-    BATCH_SIZE = 512
-    NUM_WORKERS = 20
+    BATCH_SIZE = 8
+    NUM_WORKERS = 1
 else:
     raise ValueError("Unknown environment exception")
 
-CHECKPOINT_NAME = 'epoch_1.ckpt'
+CHECKPOINT_NAME = 'epoch-4.ckpt'
 NORMALIZE_VECTORS = True
 LOAD_VECTORS_FROM_CHECKPOINT = False
-# TOPK = 5
+TOPK = 10
 THRESHOLD = 0.45  # empty string for images below the score
 DEVICE = torch.device(DEVICE)
 SEED = 17
@@ -104,9 +103,9 @@ def main():
     with torch.no_grad():
         for batch in test_loader:
             y_hat = model(batch['features'].to(DEVICE))
-            y_hat = activation(y_hat)
+            # y_hat = activation(y_hat)
 
-            confs_batch, preds_batch = torch.topk(y_hat, 1)
+            confs_batch, preds_batch = torch.topk(y_hat, TOPK)
             confs_list.append(confs_batch)
             preds_list.append(preds_batch)
         confs = torch.cat(confs_list).cpu().numpy()
