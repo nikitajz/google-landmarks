@@ -50,6 +50,9 @@ class TrainingArgs:
         default=None,
         metadata={"help": "Path to save model checkpoint (can include placeholders)"}
     )
+    image_size: int = field(
+        default=224, metadata={"help": "Image size, integer, converted to square image"}
+    )
     data_path: str = field(
         default="data/x256/", metadata={"help": "Folder where data located"})
     data_train: str = field(

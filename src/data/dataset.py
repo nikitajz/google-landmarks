@@ -15,15 +15,17 @@ PathType = Union[str, Path]
 
 
 class LandmarksImageDataset(Dataset):
-    def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str, transform: Callable = None,
-                 get_img_id=False, features_name='features', target_name='targets', img_id_name='image_ids'):
+    def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str, image_size: int,
+                 transform: Callable = None, get_img_id=False,
+                 features_name='features', target_name='targets', img_id_name='image_ids'):
         assert mode in ("train", "valid", "test")
         self.df = dataframe
         self.mode = mode
         image_subdir = "train" if self.mode == "valid" else self.mode
         self.image_dir = Path(image_dir) / image_subdir
         self.image_path = ImagePath(self.image_dir)
-        self.transform = transform if transform is not None else self._get_default_transform(self.mode)
+        self.image_size = (image_size, image_size)
+        self.transform = transform if transform is not None else self._get_default_transform(self.image_size, self.mode)
         self.get_img_id = get_img_id
         self.features_name = features_name
         self.target_name = target_name
@@ -45,9 +47,9 @@ class LandmarksImageDataset(Dataset):
         return self.df.shape[0]
 
     @staticmethod
-    def _get_default_transform(mode: str):
+    def _get_default_transform(image_size: Tuple[int, int], mode: str):
         base_transforms = [
-            transforms.Resize((224, 224))
+            transforms.Resize(image_size)
         ]
 
         center_crop = [

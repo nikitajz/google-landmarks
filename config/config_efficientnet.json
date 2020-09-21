@@ -8,6 +8,7 @@
   "log_dir": "logs/",
   "resume_checkpoint": null,
   "checkpoints_dir": "logs/checkpoints/classification/",
+  "image_size": 224,
   "data_path": "data/x224",
   "data_train": "train.csv",
   "test_size": 96000,
