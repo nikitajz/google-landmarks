@@ -47,7 +47,7 @@ class LandmarksImageDataset(Dataset):
     @staticmethod
     def _get_default_transform(mode: str):
         base_transforms = [
-            transforms.Resize(256)
+            transforms.Resize((224, 224))
         ]
 
         center_crop = [
