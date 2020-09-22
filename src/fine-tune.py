@@ -12,12 +12,16 @@ from src.config.config_template import ModelArgs, TrainingArgs
 from src.config.hf_argparser import load_or_parse_args
 from src.data.datamodule import LandmarksDataModule
 from src.data.dataset import load_train_dataframe
+from src.modeling.checkpoints import load_model_state_from_checkpoint
 from src.modeling.lit_module import LandmarksPLBaseModule
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed, get_checkpoints_path, save_config_checkpoint
 
 
 def main():
+    """
+    Use this class if anything in trainer checkpoint changed and only model weights are required to be preloaded.
+    """
     logger = logging.getLogger(__name__)
     start_time = datetime.datetime.now()
     model_args, training_args = load_or_parse_args((ModelArgs, TrainingArgs), verbose=True)
@@ -39,6 +43,7 @@ def main():
     logger.info(f'Persisted LabelEncoder to {training_args.label_encoder_filename}')
     save_config_checkpoint(training_args.checkpoints_dir)
 
+    logger.info('Initializing the model')
     model = LandmarkModel(model_name=model_args.model_name,
                           n_classes=num_classes,
                           loss_module=model_args.loss_module,
@@ -51,7 +56,8 @@ def main():
                           )
     logger.info("Model params:")
     logger.info(pformat(model_args))
-    logger.info('Initializing the model')
+    model = load_model_state_from_checkpoint(net=model, checkpoint_path=training_args.resume_checkpoint)
+
     lit_module = LandmarksPLBaseModule(hparams=training_args.__dict__,
                                        model=model,
                                        loss=model_args.loss_module)
@@ -82,7 +88,6 @@ def main():
                          val_check_interval=training_args.val_check_interval,
                          checkpoint_callback=checkpoint_callback,
                          progress_bar_refresh_rate=100,
-                         resume_from_checkpoint=training_args.resume_checkpoint,
                          # fast_dev_run=True,
                          # limit_train_batches=5,
                          # limit_val_batches=5

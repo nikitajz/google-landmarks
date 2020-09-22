@@ -75,8 +75,8 @@ class TrainingArgs:
         metadata={"help": "Filter out classes with fewer samples"})
     use_weighted_sampler: bool = field(
         default=False, metadata={"help": "Use weighted sampler"})
-    limit_samples_to_draw: bool = field(
-        default=False, metadata={"help": "Use weighted sampler"})
+    limit_samples_to_draw: Optional[int] = field(
+        default=None, metadata={"help": "Use weighted sampler"})
     replacement: bool = field(
         default=False, metadata={"help": "Whether to use replacement in weighted sampler for train data dataloader"})
     shuffle: bool = field(

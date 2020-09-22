@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import WeightedRandomSampler
 
+from src.config.config_template import TrainingArgs
 from src.data.dataset import PathType, LandmarksImageDataset, CollateBatchFn
 
 
@@ -24,33 +25,31 @@ def class_imbalance_sampler(labels, num_samples=None, replacement=False):
 class LandmarksDataModule(pl.LightningDataModule):
     def __init__(self,
                  train_df: DataFrame, valid_df: DataFrame,
+                 hparams: TrainingArgs,
                  image_dir: PathType,
-                 image_size: int,
-                 crop_size: int,
                  batch_size: int,
                  num_workers: int = 4,
                  use_weighted_sampler: bool = True,
-                 limit_samples_to_draw: bool = True,
-                 replacement: bool = False,
                  **kwargs
                  ):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.image_dir = image_dir
-        self.image_size = image_size
-        self.crop_size = crop_size
+        self.image_size = hparams.image_size
+        self.crop_size = hparams.crop_size
         self.train_df = train_df
         self.valid_df = valid_df
         self.hparams = dict()
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.use_weighted_sampler = use_weighted_sampler
-        self.limit_samples_to_draw = limit_samples_to_draw
-        self.replacement = replacement
+        self.limit_samples_to_draw = hparams.limit_samples_to_draw
+        self.replacement = hparams.replacement
 
         if self.limit_samples_to_draw and self.use_weighted_sampler:
             n_uniq_classes = self.train_df.landmark_id.nunique()
-            n_samples = int(n_uniq_classes * self.train_df.landmark_id.value_counts().mean())
+            # n_samples = int(n_uniq_classes * self.train_df.landmark_id.value_counts().mean())
+            n_samples = min(self.limit_samples_to_draw, len(self.train_df))
         else:
             n_samples = len(self.train_df)
 
