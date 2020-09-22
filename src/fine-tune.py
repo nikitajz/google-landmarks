@@ -65,7 +65,7 @@ def main():
     dm = LandmarksDataModule(train_df, valid_df,
                              hparams=training_args,
                              image_dir=training_args.data_path,
-                             image_size=training_args.image_size,
+                             batch_size=training_args.batch_size,
                              num_workers=training_args.num_workers,
                              use_weighted_sampler=training_args.use_weighted_sampler
                              )

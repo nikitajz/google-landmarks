@@ -1,6 +1,8 @@
 {
   "model_name": "efficientnet-b4",
   "loss_module": "arcface",
+  "s": 30,
+  "margin": 0.3,
   "use_fc": false,
   "normalize": false,
   "pooling_name": null,
