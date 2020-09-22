@@ -26,6 +26,7 @@ class LandmarksDataModule(pl.LightningDataModule):
                  train_df: DataFrame, valid_df: DataFrame,
                  image_dir: PathType,
                  image_size: int,
+                 crop_size: int,
                  batch_size: int,
                  num_workers: int = 4,
                  use_weighted_sampler: bool = True,
@@ -37,6 +38,7 @@ class LandmarksDataModule(pl.LightningDataModule):
         self.logger = logging.getLogger(__name__)
         self.image_dir = image_dir
         self.image_size = image_size
+        self.crop_size = crop_size
         self.train_df = train_df
         self.valid_df = valid_df
         self.hparams = dict()
@@ -67,9 +69,11 @@ class LandmarksDataModule(pl.LightningDataModule):
 
     def setup(self, stage: Optional[str] = None):
         self.collate_fn = CollateBatchFn()
-        self.train_dataset = LandmarksImageDataset(self.train_df, image_dir=self.image_dir, image_size=self.image_size,
+        self.train_dataset = LandmarksImageDataset(self.train_df, image_dir=self.image_dir,
+                                                   image_size=self.image_size, crop_size=self.crop_size,
                                                    mode="train")
-        self.valid_dataset = LandmarksImageDataset(self.valid_df, image_dir=self.image_dir, image_size=self.image_size,
+        self.valid_dataset = LandmarksImageDataset(self.valid_df, image_dir=self.image_dir,
+                                                   image_size=self.image_size, crop_size=self.crop_size,
                                                    mode="valid")
 
     def train_dataloader(self, *args, **kwargs) -> DataLoader:

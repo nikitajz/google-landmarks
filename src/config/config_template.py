@@ -53,6 +53,9 @@ class TrainingArgs:
     image_size: int = field(
         default=224, metadata={"help": "Image size, integer, converted to square image"}
     )
+    crop_size: int = field(
+        default=224, metadata={"help": "Crop size, integer, converted to square image"}
+    )
     data_path: str = field(
         default="data/x256/", metadata={"help": "Folder where data located"})
     data_train: str = field(
@@ -99,6 +102,8 @@ class TrainingArgs:
         default=1e-8, metadata={"help": "Epsilon for Adam optimizer."})
     warmup_steps: int = field(
         default=7, metadata={"help": "Warm up steps for optimizer."})
+    scheduler: str = field(
+        default="cosine_annealing", metadata={"help": "Scheduler"})
     step_size: int = field(
         default=5, metadata={"help": "Scheduler StepLR size."})
     gamma: float = field(

@@ -25,9 +25,13 @@ def main():
                                                     min_class_samples=training_args.min_class_samples)
 
     # assert training_args.test_size % training_args.batch_size == 0, "Test size should be multiple of batch size"
+
+    # TODO: split DFs once and keep those on the disk. Reload label_enc from disk on resume.
     train_df, valid_df = split_dataframe_train_test(train_orig_df, test_size=training_args.test_size,
                                                     stratify=train_orig_df.landmark_id, random_state=SEED)
     num_classes = train_df.landmark_id.nunique() if training_args.min_class_samples is None else len(label_enc.classes_)
+    logger.info(f'Num classes train: {num_classes}')
+    logger.info(f'Num classes valid: {valid_df.landmark_id.nunique()}')
 
     # save checkpoints
     training_args.checkpoints_dir.mkdir(exist_ok=True, parents=True)
@@ -55,6 +59,7 @@ def main():
     dm = LandmarksDataModule(train_df, valid_df,
                              image_dir=training_args.data_path,
                              image_size=training_args.image_size,
+                             crop_size=training_args.crop_size,
                              batch_size=training_args.batch_size,
                              num_workers=training_args.num_workers,
                              use_weighted_sampler=training_args.use_weighted_sampler,

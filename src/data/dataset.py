@@ -15,7 +15,7 @@ PathType = Union[str, Path]
 
 
 class LandmarksImageDataset(Dataset):
-    def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str, image_size: int,
+    def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str, image_size: int, crop_size: int,
                  transform: Callable = None, get_img_id=False,
                  features_name='features', target_name='targets', img_id_name='image_ids'):
         assert mode in ("train", "valid", "test")
@@ -25,7 +25,9 @@ class LandmarksImageDataset(Dataset):
         self.image_dir = Path(image_dir) / image_subdir
         self.image_path = ImagePath(self.image_dir)
         self.image_size = (image_size, image_size)
-        self.transform = transform if transform is not None else self._get_default_transform(self.image_size, self.mode)
+        self.crop_size = (crop_size, crop_size)
+        self.transform = transform if transform is not None \
+            else self._get_default_transform(self.image_size, self.crop_size, self.mode)
         self.get_img_id = get_img_id
         self.features_name = features_name
         self.target_name = target_name
@@ -47,13 +49,13 @@ class LandmarksImageDataset(Dataset):
         return self.df.shape[0]
 
     @staticmethod
-    def _get_default_transform(image_size: Tuple[int, int], mode: str):
+    def _get_default_transform(image_size: Tuple[int, int], crop_size: Tuple[int, int], mode: str):
         base_transforms = [
             transforms.Resize(image_size)
         ]
 
         center_crop = [
-            transforms.CenterCrop(224)
+            transforms.CenterCrop(crop_size)
         ]
 
         convert_n_normalize = [
@@ -70,14 +72,13 @@ class LandmarksImageDataset(Dataset):
                                         scale=(0.8, 1.2), shear=15,
                                         resample=Image.BILINEAR)
             ]),
-            # transforms.RandomCrop(224)
+            transforms.RandomCrop(224)
         ]
 
         if mode == 'train':
             all_transforms = [base_transforms, augmentations, convert_n_normalize]
         else:
-            # all_transforms = [base_transforms, center_crop, convert_n_normalize]
-            all_transforms = [base_transforms, convert_n_normalize]
+            all_transforms = [base_transforms, center_crop, convert_n_normalize]
 
         return transforms.Compose([item for sublist in all_transforms for item in sublist])
 

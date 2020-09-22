@@ -43,8 +43,12 @@ class LandmarksPLBaseModule(pl.LightningModule):
         else:
             params = self.parameters()
         optimizer = torch.optim.Adam(params, lr=self.hparams.lr)
-
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=self.hparams.step_size, gamma=self.hparams.gamma)
+        if not self.hparams.scheduler:
+            return optimizer
+        elif self.hparams.scheduler == 'step_lr':
+            scheduler = lr_scheduler.StepLR(optimizer, step_size=self.hparams.step_size, gamma=self.hparams.gamma)
+        elif self.hparams.scheduler == 'cosine_annealing':
+            scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=3e-6)
         return [optimizer], [scheduler]
 
     def _compute_step(self, batch, batch_idx, mode):
