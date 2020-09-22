@@ -4,7 +4,7 @@
   "use_fc": false,
   "normalize": false,
   "pooling_name": null,
-  "freeze_backbone": false,
+  "freeze_backbone": true,
   "log_dir": "logs/",
   "resume_checkpoint": "logs/Landmarks/3ecnuxo9/checkpoints/epoch=4.ckpt",
   "checkpoints_dir": "logs/checkpoints/classification/",
