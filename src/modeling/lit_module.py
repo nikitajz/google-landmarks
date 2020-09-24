@@ -1,6 +1,6 @@
 import logging
 import pytorch_lightning as pl
-from pytorch_lightning.metrics import Accuracy
+from pytorch_lightning.metrics import Accuracy, Recall, Precision
 import torch
 import torch.nn as nn
 import torch.optim.lr_scheduler as lr_scheduler
@@ -46,7 +46,8 @@ class LandmarksPLBaseModule(pl.LightningModule):
         if self.optimizer == 'adam':
             optimizer = torch.optim.Adam(params, lr=self.hparams.lr)
         elif self.optimizer == 'sgd':
-            optimizer = torch.optim.SGD(params, lr=self.hparams.lr)
+            optimizer = torch.optim.SGD(params, lr=self.hparams.lr, momentum=self.hparams.momentum,
+                                        weight_decay=self.hparams.weight_decay)
 
         if not self.hparams.scheduler:
             return optimizer
@@ -54,6 +55,9 @@ class LandmarksPLBaseModule(pl.LightningModule):
             scheduler = lr_scheduler.StepLR(optimizer, step_size=self.hparams.step_size, gamma=self.hparams.gamma)
         elif self.hparams.scheduler == 'cosine_annealing':
             scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=3e-6)
+        elif self.hparams.scheduler == 'reduce_lr_on_plateau':
+            scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'max', factor=self.hparams.factor,
+                                                       patience=self.hparams.patience)
         return [optimizer], [scheduler]
 
     def _compute_step(self, batch, batch_idx, mode):
@@ -90,15 +94,26 @@ class LandmarksPLBaseModule(pl.LightningModule):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         gap_epoch = self.gap[self.val_mode].compute_final()
         acc_metric = Accuracy()
+        recall_metric = Recall()
+        precision_metric = Precision()
         val_acc = acc_metric.forward(pred=torch.stack([batch['preds'] for batch in outputs]),
                                      target=torch.stack([batch['targets'] for batch in outputs]))
-        val_logs = {'val_loss': avg_loss, 'val_gap': gap_epoch, 'val_acc': val_acc}
+        val_recall = recall_metric.forward(pred=torch.stack([batch['preds'] for batch in outputs]),
+                                           target=torch.stack([batch['targets'] for batch in outputs]))
+        val_precision = precision_metric.forward(pred=torch.stack([batch['preds'] for batch in outputs]),
+                                                 target=torch.stack([batch['targets'] for batch in outputs]))
+        val_logs = {'val_loss': avg_loss, 'val_gap': gap_epoch, 'val_acc': val_acc,
+                    'val_recall': val_recall, 'val_precision': val_precision
+                    }
         # reset metrics every epoch
         self.gap[self.val_mode].reset_stats()
 
         return {
             'val_loss': avg_loss,
             'val_acc': val_acc,
+            'val_recall': val_recall,
+            'val_precision': val_precision,
             'log': val_logs,
-            'progress_bar': {'val_acc': val_acc, 'gap': gap_epoch}
+            'progress_bar': {'val_acc': val_acc, 'gap': gap_epoch, 'val_recall': val_recall,
+                             'val_precision': val_precision}
         }

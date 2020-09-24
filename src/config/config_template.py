@@ -51,7 +51,7 @@ class TrainingArgs:
         metadata={"help": "Path to save model checkpoint (can include placeholders)"}
     )
     image_size: int = field(
-        default=224, metadata={"help": "Image size, integer, converted to square image"}
+        default=256, metadata={"help": "Image size, integer, converted to square image"}
     )
     crop_size: int = field(
         default=224, metadata={"help": "Crop size, integer, converted to square image"}
@@ -98,14 +98,20 @@ class TrainingArgs:
         default='Adam', metadata={"help": "Optimizer, available options are: 'Adam', 'SGD'."})
     lr: float = field(
         default=5e-5, metadata={"help": "The initial learning rate for Adam."})
+    momentum: float = field(
+        default=0.0, metadata={"help": "Momentum for SGD if we apply some."})
     weight_decay: float = field(
         default=0.0, metadata={"help": "Weight decay if we apply some."})
     adam_epsilon: float = field(
         default=1e-8, metadata={"help": "Epsilon for Adam optimizer."})
     warmup_steps: int = field(
         default=7, metadata={"help": "Warm up steps for optimizer."})
-    scheduler: str = field(
+    scheduler: Optional[str] = field(
         default="cosine_annealing", metadata={"help": "Scheduler"})
+    factor: float = field(
+        default=0.1, metadata={"help": "Scheduler ReduceLROnPlateau factor."})
+    patience: int = field(
+        default=3, metadata={"help": "Scheduler ReduceLROnPlateau patience."})
     step_size: int = field(
         default=5, metadata={"help": "Scheduler StepLR size."})
     gamma: float = field(
