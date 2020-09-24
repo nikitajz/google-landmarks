@@ -92,6 +92,8 @@ def main():
     # create test dataloader
     submission_df = pd.read_csv(training_args.data_path / 'sample_submission.csv')
     test_loader = get_test_data_loader(submission_df, image_dir=training_args.data_path,
+                                       image_size=training_args.image_size,
+                                       crop_size=training_args.crop_size,
                                        batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
 
     # predict on test dataset

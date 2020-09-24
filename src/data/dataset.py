@@ -164,13 +164,17 @@ class CollateBatchFn:
 
 def get_test_data_loader(sub_df: DataFrame,
                          image_dir: PathType,
+                         image_size: int,
+                         crop_size: int,
                          batch_size: int,
                          num_workers: int = 4,
-                         get_img_id=True,
+                         get_img_id=True
                          ):
     test_dataset = LandmarksImageDataset(sub_df,
                                          image_dir=image_dir,
                                          mode="test",
+                                         image_size=image_size,
+                                         crop_size=crop_size,
                                          get_img_id=get_img_id
                                          )
 
