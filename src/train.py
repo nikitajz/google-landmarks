@@ -54,6 +54,7 @@ def main():
     logger.info('Initializing the model')
     lit_module = LandmarksPLBaseModule(hparams=training_args.__dict__,
                                        model=model,
+                                       optimizer=training_args.optimizer,
                                        loss=model_args.loss_module)
     # init data
     dm = LandmarksDataModule(train_df, valid_df,
@@ -83,6 +84,9 @@ def main():
                          checkpoint_callback=checkpoint_callback,
                          progress_bar_refresh_rate=100,
                          resume_from_checkpoint=training_args.resume_checkpoint,
+                         gradient_clip_val=training_args.gradient_clip_val,
+                         accumulate_grad_batches=training_args.accumulate_grad_batches,
+                         early_stop_callback=training_args.early_stop_callback,
                          # fast_dev_run=True,
                          # limit_train_batches=5,
                          # limit_val_batches=5

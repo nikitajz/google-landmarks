@@ -94,6 +94,8 @@ class TrainingArgs:
         default=1, metadata={"help": "Steps interval to accumulate gradient."})
     batch_size: int = field(
         default=16, metadata={"help": "Batch size"})
+    optimizer: str = field(
+        default='Adam', metadata={"help": "Optimizer, available options are: 'Adam', 'SGD'."})
     lr: float = field(
         default=5e-5, metadata={"help": "The initial learning rate for Adam."})
     weight_decay: float = field(

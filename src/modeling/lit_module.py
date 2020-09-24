@@ -13,11 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class LandmarksPLBaseModule(pl.LightningModule):
-    def __init__(self, hparams, model, loss='ce'):
+    def __init__(self, hparams, model, optimizer, loss):
         super().__init__()
         self.hparams = hparams
         # model
         self.model = model
+        self.optimizer = optimizer.lower()
         if loss in ("ce", 'cross-entropy'):
             self.loss_fn = nn.CrossEntropyLoss()
         elif loss in ('arcface', 'cosface', 'adacos'):
@@ -42,7 +43,11 @@ class LandmarksPLBaseModule(pl.LightningModule):
             params = [param for name, param in self.named_parameters() if 'backbone' not in name]
         else:
             params = self.parameters()
-        optimizer = torch.optim.Adam(params, lr=self.hparams.lr)
+        if self.optimizer == 'adam':
+            optimizer = torch.optim.Adam(params, lr=self.hparams.lr)
+        elif self.optimizer == 'sgd':
+            optimizer = torch.optim.SGD(params, lr=self.hparams.lr)
+
         if not self.hparams.scheduler:
             return optimizer
         elif self.hparams.scheduler == 'step_lr':
