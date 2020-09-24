@@ -19,7 +19,7 @@
   "shuffle": false,
   "num_workers": 6,
   "gpus": "0",
-  "n_epochs": 5,
+  "n_epochs": 10,
   "batch_size": 64,
   "accumulate_grad_batches": 4,
   "optimizer": "SGD",
