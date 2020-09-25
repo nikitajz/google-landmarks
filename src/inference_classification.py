@@ -109,14 +109,17 @@ def main():
 
             confs_batch, preds_batch = torch.topk(y_hat, TOPK)
             confs_batch = activation(confs_batch)
-            confs_list.append(confs_batch[:, 0])
-            preds_list.append(preds_batch[:, 0])
+            confs_list.append(confs_batch)
+            preds_list.append(preds_batch)
         confs = torch.cat(confs_list).cpu().numpy()
         preds = torch.cat(preds_list).cpu().numpy()
-    pred_labels = [label_enc.inverse_transform(pred) for pred in preds]
 
-    pred_labels = [label[0] for label in pred_labels]
-    confidence_score = [score[0] for score in confs]
+    pred_labels = label_enc.inverse_transform(preds[:, 0])  # decode only first element
+    confidence_score = confs[:, 0]
+    # pred_labels = [label_enc.inverse_transform(pred) for pred in preds]
+    #
+    # pred_labels = [label[0] for label in pred_labels]
+    # confidence_score = [score[0] for score in confs]
 
     # save submit file
     logger.info('Saving the predictions to submission.csv')
