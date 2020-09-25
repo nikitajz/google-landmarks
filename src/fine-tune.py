@@ -60,6 +60,7 @@ def main():
 
     lit_module = LandmarksPLBaseModule(hparams=training_args.__dict__,
                                        model=model,
+                                       optimizer=training_args.optimizer,
                                        loss=model_args.loss_module)
     # init data
     dm = LandmarksDataModule(train_df, valid_df,
@@ -71,7 +72,7 @@ def main():
                              )
     # train
     dt_str = datetime.datetime.now().strftime("%y%m%d_%H-%M")
-    wandb_logger = WandbLogger(name=f'Baseline_GeM_ArcFace_{dt_str}',
+    wandb_logger = WandbLogger(name=f'{model_args.model_name.capitalize()}_GeM_ArcFace_{dt_str}',
                                save_dir='logs/',
                                project='landmarks')
     checkpoint_callback = ModelCheckpoint(monitor='val_acc',
@@ -88,6 +89,8 @@ def main():
                          val_check_interval=training_args.val_check_interval,
                          checkpoint_callback=checkpoint_callback,
                          progress_bar_refresh_rate=100,
+                         gradient_clip_val=training_args.gradient_clip_val,
+                         accumulate_grad_batches=training_args.accumulate_grad_batches,
                          # fast_dev_run=True,
                          # limit_train_batches=5,
                          # limit_val_batches=5

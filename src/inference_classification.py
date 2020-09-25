@@ -30,7 +30,7 @@ if KAGGLE_KERNEL_RUN_TYPE in ('Batch', 'Interactive'):
 elif KAGGLE_KERNEL_RUN_TYPE == 'Localhost':
     CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/2uglfbx6/checkpoints')
     SUBMISSION_PATH = os.path.join(CHECKPOINT_DIR, 'submission.csv')
-    DEVICE = 'cuda:0'
+    DEVICE = 'cuda:1'
     BATCH_SIZE = 8
     NUM_WORKERS = 1
 else:
@@ -108,8 +108,9 @@ def main():
             # y_hat = activation(y_hat)
 
             confs_batch, preds_batch = torch.topk(y_hat, TOPK)
-            confs_list.append(confs_batch)
-            preds_list.append(preds_batch)
+            confs_batch = activation(confs_batch)
+            confs_list.append(confs_batch[:, 0])
+            preds_list.append(preds_batch[:, 0])
         confs = torch.cat(confs_list).cpu().numpy()
         preds = torch.cat(preds_list).cpu().numpy()
     pred_labels = [label_enc.inverse_transform(pred) for pred in preds]
