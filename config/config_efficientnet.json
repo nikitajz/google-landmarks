@@ -21,7 +21,7 @@
   "replacement": false,
   "shuffle": false,
   "num_workers": 12,
-  "gpus": "0",
+  "gpus": "1",
   "n_epochs": 50,
   "batch_size": 32,
   "lr": 5e-6,

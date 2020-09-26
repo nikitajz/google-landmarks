@@ -4,21 +4,11 @@ from typing import Optional
 from pandas import DataFrame
 
 import pytorch_lightning as pl
-import torch
 from torch.utils.data import DataLoader
-from torch.utils.data.sampler import WeightedRandomSampler
 
 from src.config.config_template import TrainingArgs
 from src.data.dataset import PathType, LandmarksImageDataset, CollateBatchFn
-
-
-def class_imbalance_sampler(labels, num_samples=None, replacement=False):
-    labels = torch.LongTensor(labels.to_numpy())
-    class_count = torch.bincount(labels).to(dtype=torch.float)
-    class_weighting = 1. / class_count
-    sample_weights = class_weighting[labels]
-    sampler = WeightedRandomSampler(sample_weights, num_samples=num_samples, replacement=replacement)
-    return sampler
+from src.data.samplers import get_imbalanced_sampler, DistributedSamplerWrapper
 
 
 # TODO: make `valid_df` optional
@@ -39,7 +29,8 @@ class LandmarksDataModule(pl.LightningDataModule):
         self.crop_size = hparams.crop_size
         self.train_df = train_df
         self.valid_df = valid_df
-        self.hparams = dict()
+        self.hparams = hparams
+        self.tpu_cores = hparams.tpu_cores
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.use_weighted_sampler = use_weighted_sampler
@@ -56,8 +47,19 @@ class LandmarksDataModule(pl.LightningDataModule):
         self.sampler = None
         if self.use_weighted_sampler:
             self.logger.info(f'Using weighted sampler with total {n_samples} to draw. Replacement: {self.replacement}')
-            self.sampler = class_imbalance_sampler(self.train_df.landmark_id, num_samples=n_samples,
-                                                   replacement=self.replacement)
+            imbalanced_sampler = get_imbalanced_sampler(self.train_df.landmark_id, num_samples=n_samples,
+                                                        replacement=self.replacement)
+            if self.tpu_cores is not None and self.tpu_cores > 1:
+                import torch_xla.core.xla_model as xm
+                distributed_sampler = DistributedSamplerWrapper(
+                    imbalanced_sampler,
+                    num_replicas=xm.xrt_world_size(),
+                    rank=xm.get_ordinal(),
+                    shuffle=self.hparams.shuffle
+                )
+                self.sampler = distributed_sampler
+            else:
+                self.sampler = imbalanced_sampler
 
         self.collate_fn = None
         self.train_dataset = None

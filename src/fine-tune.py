@@ -15,7 +15,7 @@ from src.data.dataset import load_train_dataframe
 from src.modeling.checkpoints import load_model_state_from_checkpoint
 from src.modeling.lit_module import LandmarksPLBaseModule
 from src.modeling.model import LandmarkModel
-from src.utils import fix_seed, get_checkpoints_path, save_config_checkpoint
+from src.utils import fix_seed, get_wandb_logger_checkpoints_path, save_config_checkpoint
 
 
 def main():
@@ -98,7 +98,7 @@ def main():
     trainer.fit(lit_module, datamodule=dm)
 
     try:
-        training_args.checkpoints_dir = get_checkpoints_path(wandb_logger)
+        training_args.checkpoints_dir = get_wandb_logger_checkpoints_path(wandb_logger)
         logger.info(f'Saving checkpoints to the current directory: {training_args.checkpoints_dir}')
     except:
         logger.warning(f'Unable to get current checkpoints directory, using default one: '

@@ -31,15 +31,16 @@ elif KAGGLE_KERNEL_RUN_TYPE == 'Localhost':
     CHECKPOINT_DIR = os.path.expanduser('~/kaggle/landmark_recognition_2020/logs/Landmarks/2uglfbx6/checkpoints')
     SUBMISSION_PATH = os.path.join(CHECKPOINT_DIR, 'submission.csv')
     DEVICE = 'cuda:1'
-    BATCH_SIZE = 8
+    BATCH_SIZE = 256
     NUM_WORKERS = 1
 else:
     raise ValueError("Unknown environment exception")
 
+CONFIG_FILE = "config_arcface_classification.json"
 CHECKPOINT_NAME = 'epoch-4.ckpt'
 NORMALIZE_VECTORS = True
 LOAD_VECTORS_FROM_CHECKPOINT = False
-TOPK = 10
+TOPK = 1
 THRESHOLD = 0.45  # empty string for images below the score
 DEVICE = torch.device(DEVICE)
 SEED = 17
@@ -66,7 +67,7 @@ def main():
 
     # load config file
     model_args, training_args = load_or_parse_args((ModelArgs, TrainingArgs), verbose=True,
-                                                   json_path=os.path.join(CHECKPOINT_DIR, 'config.json'))
+                                                   json_path=os.path.join(CHECKPOINT_DIR, CONFIG_FILE))
 
     # load label_encoder
     logger.info(f'Loading persisted LabelEncoder and num_classes from checkpoints {CHECKPOINT_DIR}')
@@ -108,18 +109,20 @@ def main():
             # y_hat = activation(y_hat)
 
             confs_batch, preds_batch = torch.topk(y_hat, TOPK)
-            confs_batch = activation(confs_batch)
+            # confs_batch = activation(confs_batch)
             confs_list.append(confs_batch)
             preds_list.append(preds_batch)
         confs = torch.cat(confs_list).cpu().numpy()
         preds = torch.cat(preds_list).cpu().numpy()
 
-    pred_labels = label_enc.inverse_transform(preds[:, 0])  # decode only first element
-    confidence_score = confs[:, 0]
-    # pred_labels = [label_enc.inverse_transform(pred) for pred in preds]
-    #
-    # pred_labels = [label[0] for label in pred_labels]
-    # confidence_score = [score[0] for score in confs]
+    if TOPK == 1:
+        pred_labels = label_enc.inverse_transform(preds.ravel())
+        confidence_score = confs.ravel()
+    else:  # solely for debug&analysis (if TOPK > 1)
+        pred_labels = [label_enc.inverse_transform(pred) for pred in preds]
+        pred_labels = [label[0] for label in pred_labels]
+        confidence_score = [score[0] for score in confs]
+        # TODO: save debug file
 
     # save submit file
     logger.info('Saving the predictions to submission.csv')

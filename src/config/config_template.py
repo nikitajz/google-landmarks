@@ -85,9 +85,11 @@ class TrainingArgs:
         default=1, metadata={"help": "How many workers to use for dataloader"})
     seed: int = field(
         default=42, metadata={"help": "Random number"})
-    gpus: str = field(
-        default="0", metadata={"help": "Device to train model on. Int for number of gpus, " +
-                                       "str to select specific one or List[str] to select few specific gpus"})
+    gpus: Optional[str] = field(
+        default=None, metadata={"help": "Device to train model on. Int for number of gpus, " +
+                                        "str to select specific one or List[str] to select few specific gpus"})
+    tpu_cores: Optional[int] = field(
+        default=None, metadata={"help": "Number of TPU cores"})
     n_epochs: int = field(
         default=2, metadata={"help": "Number of epochs to train"})
     accumulate_grad_batches: int = field(

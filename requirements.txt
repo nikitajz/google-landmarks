@@ -3,11 +3,11 @@ efficientnet-pytorch==0.7.0
 joblib==0.16.0
 kaggle==1.5.8
 matplotlib==3.3.1
-numpy==1.19.1
+numpy==1.18.5
 pandas==1.1.1
-pytorch-lightning==9.0
+pytorch-lightning==0.9.0
 pretrainedmodels==0.7.4
 seaborn==0.10.1
 torch==1.6.0
 torchvision==0.7.0
-wandb==0.10.0
+wandb==0.10.2
