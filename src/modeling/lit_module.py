@@ -114,6 +114,5 @@ class LandmarksPLBaseModule(pl.LightningModule):
             'val_recall': val_recall,
             'val_precision': val_precision,
             'log': val_logs,
-            'progress_bar': {'val_acc': val_acc, 'gap': gap_epoch, 'val_recall': val_recall,
-                             'val_precision': val_precision}
+            'progress_bar': {'val_acc': val_acc, 'gap': gap_epoch}
         }
