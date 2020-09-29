@@ -43,7 +43,7 @@ class ArcFaceLoss(nn.modules.Module):
 
 
 class ArcMarginProduct(nn.Module):
-    r"""Implement of large margin arc distance: :
+    r"""Implement of large margin arc distance:
         Args:
             in_features: size of each input sample
             out_features: size of each output sample
