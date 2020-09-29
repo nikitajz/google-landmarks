@@ -12,10 +12,12 @@ from torchvision import transforms
 
 logger = logging.getLogger()
 PathType = Union[str, Path]
+ImageSizeType = Union[int, Tuple[int, int]]
 
 
 class LandmarksImageDataset(Dataset):
-    def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str, image_size: int, crop_size: int,
+    def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str,
+                 image_size: ImageSizeType, crop_size: ImageSizeType,
                  transform: Callable = None, get_img_id=False,
                  features_name='features', target_name='targets', img_id_name='image_ids'):
         assert mode in ("train", "valid", "test")
@@ -23,9 +25,9 @@ class LandmarksImageDataset(Dataset):
         self.mode = mode
         image_subdir = "train" if self.mode == "valid" else self.mode
         self.image_dir = Path(image_dir) / image_subdir
-        self.image_path = ImagePath(self.image_dir)
-        self.image_size = (image_size, image_size)
-        self.crop_size = (crop_size, crop_size)
+        self.image_path = ImagePathBuilder(self.image_dir)
+        self.image_size = image_size if isinstance(image_size, tuple) else (image_size, image_size)
+        self.crop_size = crop_size if isinstance(crop_size, tuple) else (crop_size, crop_size)
         self.transform = transform if transform is not None \
             else self._get_default_transform(self.image_size, self.crop_size, self.mode)
         self.get_img_id = get_img_id
@@ -83,7 +85,7 @@ class LandmarksImageDataset(Dataset):
         return transforms.Compose([item for sublist in all_transforms for item in sublist])
 
 
-class ImagePath:
+class ImagePathBuilder:
     def __init__(self, image_dir: PathType):
         self.dir = Path(image_dir)
 
@@ -117,8 +119,8 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
     if check_image_path_exists:
         logger.debug('Checking that images exist')
         image_dir = csv_path.parent / 'train'
-        image_path = ImagePath(image_dir)
-        df = df.loc[df.id.apply(image_path.exists)]
+        image_path_builder = ImagePathBuilder(image_dir)
+        df = df.loc[df.id.apply(image_path_builder.exists)]
         logger.debug(f'Sample after filtering non-existing images: {df.shape[0]}')
     if min_class_samples is not None and min_class_samples > 0:
         grouped_df = df.groupby("landmark_id").size()
@@ -164,8 +166,8 @@ class CollateBatchFn:
 
 def get_test_data_loader(sub_df: DataFrame,
                          image_dir: PathType,
-                         image_size: int,
-                         crop_size: int,
+                         image_size: ImageSizeType,
+                         crop_size: ImageSizeType,
                          batch_size: int,
                          num_workers: int = 4,
                          get_img_id=True
