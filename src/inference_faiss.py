@@ -13,7 +13,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from src.config.config_template import TrainingArgs, ModelArgs
 from src.config.hf_argparser import load_or_parse_args
-from src.data.dataset import get_test_data_loader
+from src.data.dataset import get_test_data_loader, TARGET_NAME
 from src.modeling.checkpoints import load_model_state_from_checkpoint
 from src.modeling.features_index import extract_features
 from src.modeling.model import LandmarkModel
@@ -44,12 +44,12 @@ CHECKPOINT_NAME = 'epoch_1.ckpt'
 NORMALIZE_VECTORS = True
 LOAD_VECTORS_FROM_CHECKPOINT = False
 TOPK = 5
+SEED = 17
 DEVICE = torch.device(DEVICE)
+fix_seed(SEED)
 
 
 def main():
-    SEED = 17
-    fix_seed(SEED)
     start_time = datetime.datetime.now()
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -103,7 +103,7 @@ def main():
     train_vec_mapping = joblib.load(os.path.join(CHECKPOINT_DIR, 'meta_vectors_train.pkl'))
 
     # train_vec_image_ids = train_vec_mapping['image_ids']
-    train_vec_targets = train_vec_mapping['targets']
+    train_vec_targets = train_vec_mapping[TARGET_NAME]
 
     # predict kNN for each test image (topk = 3)
     logger.info('Searching for nearest neighbours')

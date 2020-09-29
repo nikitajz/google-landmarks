@@ -15,6 +15,7 @@ from src.data.dataset import get_test_data_loader
 from src.modeling.checkpoints import load_model_state_from_checkpoint
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed
+from src.data.dataset import FEATURE_NAME, IMG_ID_NAME
 
 KAGGLE_KERNEL_RUN_TYPE = os.environ.get('KAGGLE_KERNEL_RUN_TYPE', 'Localhost')
 if KAGGLE_KERNEL_RUN_TYPE in ('Batch', 'Interactive'):
@@ -23,6 +24,7 @@ if KAGGLE_KERNEL_RUN_TYPE in ('Batch', 'Interactive'):
     SUBMISSION_PATH = 'submission.csv'
 
     import sys
+
     sys.path.append(CODE_DIR)
     DEVICE = 'cuda:0'
     BATCH_SIZE = 128
@@ -42,8 +44,9 @@ NORMALIZE_VECTORS = True
 LOAD_VECTORS_FROM_CHECKPOINT = False
 TOPK = 1
 THRESHOLD = 0.45  # empty string for images below the score
-DEVICE = torch.device(DEVICE)
 SEED = 17
+DEVICE = torch.device(DEVICE)
+fix_seed(SEED)
 
 
 # postprocessing
@@ -56,7 +59,6 @@ def postprocessing_omit_low_scores(row):
 
 
 def main():
-    fix_seed(SEED)
     start_time = datetime.datetime.now()
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -105,7 +107,7 @@ def main():
     preds_list = []
     with torch.no_grad():
         for batch in test_loader:
-            y_hat = model(batch['features'].to(DEVICE))
+            y_hat = model(batch[FEATURE_NAME].to(DEVICE))
             # y_hat = activation(y_hat)
 
             confs_batch, preds_batch = torch.topk(y_hat, TOPK)

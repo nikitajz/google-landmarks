@@ -13,13 +13,15 @@ from torchvision import transforms
 logger = logging.getLogger()
 PathType = Union[str, Path]
 ImageSizeType = Union[int, Tuple[int, int]]
+FEATURE_NAME = 'features'
+TARGET_NAME = 'targets'
+IMG_ID_NAME = 'image_ids'
 
 
 class LandmarksImageDataset(Dataset):
     def __init__(self, dataframe: DataFrame, image_dir: PathType, mode: str,
                  image_size: ImageSizeType, crop_size: ImageSizeType,
-                 transform: Callable = None, get_img_id=False,
-                 features_name='features', target_name='targets', img_id_name='image_ids'):
+                 transform: Callable = None, get_img_id=False):
         assert mode in ("train", "valid", "test")
         self.df = dataframe
         self.mode = mode
@@ -31,9 +33,9 @@ class LandmarksImageDataset(Dataset):
         self.transform = transform if transform is not None \
             else self._get_default_transform(self.image_size, self.crop_size, self.mode)
         self.get_img_id = get_img_id
-        self.features_name = features_name
-        self.target_name = target_name
-        self.img_id_name = img_id_name
+        self.features_name = FEATURE_NAME
+        self.target_name = TARGET_NAME
+        self.img_id_name = IMG_ID_NAME
 
     def __getitem__(self, idx: int):
         image_id = self.df.iat[idx, self.df.columns.get_loc("id")]
@@ -144,10 +146,10 @@ def load_train_dataframe(csv_path: PathType, min_class_samples: Optional[int] = 
 
 
 class CollateBatchFn:
-    def __init__(self, features_name: str = "features", target_name: str = "targets", image_id_name='image_ids'):
-        self.features_name = features_name
-        self.target_name = target_name
-        self.image_id_name = image_id_name
+    def __init__(self):
+        self.features_name = FEATURE_NAME
+        self.target_name = TARGET_NAME
+        self.img_id_name = IMG_ID_NAME
 
     def __call__(self, batch):
         features = torch.stack([row[self.features_name] for row in batch], dim=0)

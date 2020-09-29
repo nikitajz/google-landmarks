@@ -19,6 +19,7 @@ from src.data.dataset import get_test_data_loader, load_train_dataframe, Collate
 from src.modeling.checkpoints import load_model_state_from_checkpoint
 from src.modeling.model import LandmarkModel
 from src.utils import fix_seed
+from src.data.dataset import FEATURE_NAME, IMG_ID_NAME
 
 KAGGLE_KERNEL_RUN_TYPE = os.environ.get('KAGGLE_KERNEL_RUN_TYPE', 'Localhost')
 if KAGGLE_KERNEL_RUN_TYPE in ('Batch', 'Interactive'):
@@ -74,9 +75,9 @@ def generate_embeddings(model, loader):
 
     with torch.no_grad():
         for i, batch in enumerate(loader):
-            sample_size = len(batch['image_ids'])
-            ids[i * batch_size:i * batch_size + sample_size] = batch['image_ids']
-            features = batch['features'].to(DEVICE)
+            sample_size = len(batch[IMG_ID_NAME])
+            ids[i * batch_size:i * batch_size + sample_size] = batch[IMG_ID_NAME]
+            features = batch[FEATURE_NAME].to(DEVICE)
             embeddings[i * batch_size:i * batch_size + sample_size, :] = model.extract_feat(features).cpu().numpy()
 
     return ids, embeddings
