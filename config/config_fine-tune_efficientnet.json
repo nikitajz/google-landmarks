@@ -1,10 +1,10 @@
 {
-  "model_name": "efficientnet-b2",
+  "model_name": "efficientnet-b1",
   "loss_module": "arcface",
   "s": 30,
   "margin": 0.3,
   "use_fc": true,
-  "normalize": false,
+  "normalize": true,
   "pooling_name": null,
   "dropout": 0.3,
   "freeze_backbone": false,

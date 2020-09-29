@@ -70,6 +70,7 @@ class LandmarkModel(nn.Module):
     def extract_feat(self, x):
         batch_size = x.shape[0]
         # feature extraction -> pooling -> norm
+        # x = self.backbone(x)
         x = self.backbone(x)
         x = self.pooling(x)
         if self.norm is not None:
@@ -82,38 +83,48 @@ class LandmarkModel(nn.Module):
         return x
 
     @staticmethod
-    def get_backbone(model_name, pretrained, num_classes=1000) -> Tuple[nn.Module, int]:
+    def get_backbone(model_name, pretrained, num_classes=1000, include_top=False) -> Tuple[nn.Module, int]:
+        """
+        EfficientNet requires at least this commit: 4250c2b6bf310f815b16c516ee1583f4bdf4b772
+        to support `include_top` parameter, which is not available in v.0.7
+        :param model_name: str
+            Either EfficinentNet-like or on from pretrainedmodels.
+        :param pretrained: bool
+            Whether to load pretrained weights (requires Internet or saved model in cache).
+        :param num_classes: int
+            Number of classes in final FC layer.
+        :param include_top:
+            Whether to keep final FC + related layers.
+        :return: nn.Module
+            Pytorch model.
+        """
         if model_name.startswith("efficientnet"):
             if pretrained:
                 model = EfficientNet.from_pretrained(
                     model_name=model_name,
-                    num_classes=num_classes)
+                    num_classes=num_classes,
+                    include_top=include_top)
             else:
                 model = EfficientNet.from_name(
                     model_name=model_name,
-                    num_classes=num_classes)
-            return model, model._fc.out_features
-            # fc_in_features = model._fc.in_features
-            # if not remove_head:
-            #     return model, model._fc.out_features
-            # else:
-            #     # can't chop off head because forward method has reference to those layers.
-            #     # Requires more sophisticated approach
-            #     exclude_layers = ('_bn1', '_avg_pooling', '_dropout', '_fc', '_swish')
-            #     model = nn.Sequential(
-            #         OrderedDict((name, m) for name, m in model.named_children() if name not in exclude_layers)
-            #         )
-            #     return model, fc_in_features
+                    num_classes=num_classes,
+                    include_top=include_top)
+
+            fc_in_features = model._fc.in_features if not include_top else model._fc.out_features
+            return model, fc_in_features
 
         elif model_name in pretrainedmodels.model_names:
             num_classes = 1000  # due to models limitations
             model = getattr(pretrainedmodels, model_name)(num_classes=num_classes,
                                                           pretrained='imagenet' if pretrained else None)
             fc_in_features = model.last_linear.in_features
-            # remove avgpool, fc, last_linear
-            exclude_layers = ('avgpool', 'fc', 'last_linear')
-            model = nn.Sequential(
-                OrderedDict((name, m) for name, m in model.named_children() if name not in exclude_layers))
-            return model, fc_in_features
+            if include_top:
+                return model, fc_in_features
+            else:
+                # remove avgpool, fc, last_linear
+                exclude_layers = ('avgpool', 'fc', 'last_linear')
+                model = nn.Sequential(
+                    OrderedDict((name, m) for name, m in model.named_children() if name not in exclude_layers))
+                return model, fc_in_features
         else:
             raise NotImplementedError("No other models available so far")

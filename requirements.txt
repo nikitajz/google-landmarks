@@ -1,5 +1,6 @@
 albumentations==0.4.6
-efficientnet-pytorch==0.7.0
+# include_top, not available in v.0.7
+-e git+git://github.com/lukemelas/EfficientNet-PyTorch.git@4250c2b6bf310f815b16c516ee1583f4bdf4b772
 joblib==0.16.0
 kaggle==1.5.8
 matplotlib==3.3.1

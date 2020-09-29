@@ -1,16 +1,16 @@
 {
-  "model_name": "efficientnet-b2",
+  "model_name": "efficientnet-b1",
   "loss_module": "arcface",
   "s": 30,
   "margin": 0.3,
   "use_fc": true,
-  "normalize": false,
+  "normalize": true,
   "pooling_name": null,
   "dropout": 0.3,
   "freeze_backbone": false,
   "log_dir": "logs/",
   "resume_checkpoint": null,
-  "checkpoints_dir": "logs/checkpoints/effnet-b3/",
+  "checkpoints_dir": "logs/checkpoints/effnet_headless/",
   "data_path": "data/x256",
   "data_train": "train.csv",
   "image_size": 256,
@@ -32,6 +32,6 @@
   "weight_decay": 0.0001,
   "scheduler": "reduce_lr_on_plateau",
   "factor": 0.1,
-  "patience": 2,
+  "patience": 3,
   "val_check_interval": 0.1
 }
