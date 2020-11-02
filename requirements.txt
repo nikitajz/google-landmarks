@@ -1,11 +1,15 @@
 albumentations==0.4.6
-efficientnet-pytorch==0.7.0
+# 'include_top' features, not available in v.0.7
+-e git+git://github.com/lukemelas/EfficientNet-PyTorch.git@4250c2b6bf310f815b16c516ee1583f4bdf4b772
 joblib==0.16.0
-kaggle==1.5.6
+kaggle==1.5.8
 matplotlib==3.3.1
-numpy==1.19.1
+numpy==1.18.5
 pandas==1.1.1
+pytorch-lightning==0.9.0
+pretrainedmodels==0.7.4
 seaborn==0.10.1
-pytorch==1.6.0
+scikit-learn==0.23.2
+torch==1.6.0
 torchvision==0.7.0
-wandb==0.9.5
+wandb==0.10.2

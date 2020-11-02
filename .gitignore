@@ -10,9 +10,11 @@ data/*
 random/*
 notebooks/*
 experiments/*
+misc/*
 runs/*
 tb_logs/*
 lightning_logs/*
+logs/*
 wandb/*
 default/*
 .early_stopping/*
