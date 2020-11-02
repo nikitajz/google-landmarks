@@ -1,7 +1,7 @@
-My experiments based on Google Landmarks Dataset v2:
+My experiments based on Google Landmarks Dataset v2:  
 https://github.com/cvdfoundation/google-landmark
 
-and accompanying competition
+and accompanying competition  
 https://www.kaggle.com/c/landmark-recognition-2020/
 
 Install required packages:
