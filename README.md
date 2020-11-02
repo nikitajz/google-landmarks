@@ -1,14 +1,14 @@
-# Google Landmark Recognition 2020
+My experiments based on Google Landmarks Dataset v2:
+https://github.com/cvdfoundation/google-landmark
+
+and accompanying competition
 https://www.kaggle.com/c/landmark-recognition-2020/
 
 Install required packages:
   
-    conda create --name landmarks python=3.8
+    conda create --name landmarks python=3.7
     conda activate landmarks
-    conda install -y pytorch torchvision cudatoolkit=10.2 -c pytorch
-    conda install -y albumentations efficientnet-pytorch joblib kaggle matplotlib numpy pandas pretrainedmodels pytorch-lightning seaborn scikit-learn wandb
-    conda install -y faiss-cpu
-    # for GPU version use below
-    # conda install -y faiss-gpu cudatoolkit=10.2 -c pytorch # For CUDA10.2
+    pip install --use-feature=2020-resolver -r requirements.txt
     
-Note that CUDA version (here 10.2) should correspond to your system-wide installed.
+Optionally CUDA version (here 10.2) could be installed using anaconda instead of system-wide installation:
+    conda install -y cudatoolkit=10.2 -c pytorch
